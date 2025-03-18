@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.twilio</groupId>
+        <artifactId>meta-maven-plugin-parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>demo-meta-maven-plugin</artifactId>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Dependency needed to force reactor build order -->
+        <dependency>
+            <groupId>com.twilio</groupId>
+            <artifactId>meta-maven-plugin-maven-plugin</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.twilio</groupId>
+                <artifactId>meta-maven-plugin-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate-meta-plugin</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <root>
+                        <child>Value</child>
+                        <nested>
+                            <item>1</item>
+                            <item>2</item>
+                        </nested>
+                    </root>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
