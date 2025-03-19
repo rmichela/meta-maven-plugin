@@ -14,6 +14,8 @@
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <child1.name>Value</child1.name>
+        <child2.name>Other Value</child2.name>
     </properties>
 
     <dependencies>
@@ -40,13 +42,40 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <root>
-                        <child>Value</child>
-                        <nested>
-                            <item>1</item>
-                            <item>2</item>
-                        </nested>
-                    </root>
+                    <plugins>
+                        <plugin>
+                            <groupId>com.github.ekryd.echo-maven-plugin</groupId>
+                            <artifactId>echo-maven-plugin</artifactId>
+                            <version>2.0.0</version>
+                            <executions>
+                                <execution>
+                                    <goals>
+                                        <goal>echo</goal>
+                                    </goals>
+                                    <phase>validate</phase>
+                                </execution>
+                            </executions>
+                            <configuration>
+                                <message>${child1.name}</message>
+                            </configuration>
+                        </plugin>
+                        <plugin>
+                            <groupId>com.github.ekryd.echo-maven-plugin</groupId>
+                            <artifactId>echo-maven-plugin</artifactId>
+                            <version>2.0.0</version>
+                            <executions>
+                                <execution>
+                                    <goals>
+                                        <goal>echo</goal>
+                                    </goals>
+                                    <phase>validate</phase>
+                                </execution>
+                            </executions>
+                            <configuration>
+                                <message>${child2.name}</message>
+                            </configuration>
+                        </plugin>
+                    </plugins>
                 </configuration>
             </plugin>
         </plugins>
