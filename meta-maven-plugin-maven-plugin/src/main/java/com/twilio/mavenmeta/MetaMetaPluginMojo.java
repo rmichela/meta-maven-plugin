@@ -1,23 +1,21 @@
 package com.twilio.mavenmeta;
 
-import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginContainer;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.apache.maven.model.io.xpp3.MavenXpp3ReaderEx;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.component.annotations.Requirement;
 import org.codehaus.plexus.util.xml.*;
 import org.codehaus.plexus.util.xml.pull.MXParser;
 import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 
 import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +27,9 @@ public class MetaMetaPluginMojo extends AbstractMojo {
     @Inject
     private MojoExecution mojoExecution;
 
+    @Parameter(name = "plugins", required = true)
+    private List<Plugin> plugins;
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
@@ -36,9 +37,10 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             Xpp3Dom configurationXml = (Xpp3Dom) plugin.getConfiguration();
             if (configurationXml != null) {
                 getLog().info("Received XML configuration:");
-                printXml(configurationXml);
-                getPluginContainer(configurationXml).getPlugins().forEach(p -> {
+//                printXml(configurationXml);
+                plugins.forEach(p -> {
                     getLog().info(p.getGroupId() + ":" + p.getArtifactId() + ":" + p.getVersion());
+                    getLog().info(p.getConfiguration().toString());
                 });
             } else {
                 getLog().warn("No XML configuration provided.");
