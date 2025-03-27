@@ -52,7 +52,7 @@
                                     <goals>
                                         <goal>echo</goal>
                                     </goals>
-                                    <phase>validate</phase>
+                                    <phase>compile</phase>
                                 </execution>
                             </executions>
                             <configuration>
@@ -68,12 +68,12 @@
                                     <goals>
                                         <goal>echo</goal>
                                     </goals>
-                                    <phase>validate</phase>
+                                    <phase>compile</phase>
+                                    <configuration>
+                                        <message>${child2.name}</message>
+                                    </configuration>
                                 </execution>
                             </executions>
-                            <configuration>
-                                <message>${child2.name}</message>
-                            </configuration>
                         </plugin>
                     </plugins>
                 </configuration>
