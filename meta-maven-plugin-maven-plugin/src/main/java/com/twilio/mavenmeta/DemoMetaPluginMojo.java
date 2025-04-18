@@ -3,7 +3,6 @@ package com.twilio.mavenmeta;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.*;
-import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -13,11 +12,14 @@ import org.twdata.maven.mojoexecutor.MavenCompatibilityHelper;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 
 import javax.inject.Inject;
+import javax.lang.model.SourceVersion;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-@Mojo(name = "generate-meta-plugin", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true)
-public class MetaMetaPluginMojo extends AbstractMojo {
+@Mojo(name = "demo-meta-plugin", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true)
+public class DemoMetaPluginMojo extends AbstractMojo {
 
     @Inject
     private MojoExecution mojoExecution;
@@ -25,16 +27,43 @@ public class MetaMetaPluginMojo extends AbstractMojo {
     @Inject
     private BuildPluginManager pluginManager;
 
-    @Parameter(defaultValue = "${project}", readonly = true, required = true)
-    private MavenProject project;
-
     /**
      * The current Maven session.
      */
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
+    @SuppressWarnings({"unused"})
     private MavenSession mavenSession;
 
+    @Parameter(defaultValue = "${project}", readonly = true, required = true)
+    @SuppressWarnings({"unused"})
+    private MavenProject project;
 
+    /**
+     * The name of the package for the generated meta plugin.
+     * <p>
+     * By default, the package name will be calculated as <code>groupId + "." + artifactId</code> with additional
+     * <ul>
+     * <li><code>-</code> (dashes) will be replaced by <code>_</code> (underscores)</li>
+     * <li><code>_</code> (underscore) will be added before each number or Java keyword at the beginning of name</li>
+     * </ul>
+     */
+    @Parameter
+    private String packageName;
+
+    /**
+     * A list of parameters for use by the generated meta plugin. Has the same properties as
+     * {@link com.twilio.mavenmeta.Parameter}. All parameters are of type String and are interpolated into
+     * the meta plugin configuration. Meta plugin interpolated parameters are prefixed with #{} instead of ${}.
+     */
+    @Parameter(name = "parameters")
+    @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
+    private List<com.twilio.mavenmeta.Parameter> parameters;
+
+    /**
+     * A &lt;plugin&gt; element for each plugin to be executed. The plugins follow the same format as build plugins.
+     * <p>
+     * Plugin phases (default and explicit) determine which meta-plugin goals are generated.
+     */
     @Parameter(name = "plugins", required = true)
     @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
     private List<Plugin> plugins;
@@ -42,6 +71,12 @@ public class MetaMetaPluginMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException {
         try {
+            if (parameters != null) {
+                parameters.forEach(parameter -> {
+                    getLog().info("Parameter: " + parameter.getName() + " Default: " + parameter.getDefaultValue());
+                });
+            }
+
             var activePhase = mojoExecution.getLifecyclePhase();
             var env = MojoExecutor.executionEnvironment(project, mavenSession, pluginManager);
 
@@ -83,5 +118,30 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         } catch (Exception e) {
             throw new MojoExecutionException(e.getMessage(), e);
         }
+    }
+
+    String getHelpPackageName(String metaPackageName) {
+        String packageName = null;
+        if (metaPackageName != null && !metaPackageName.isBlank()) {
+            packageName = metaPackageName;
+        }
+
+        if (packageName == null) {
+            packageName = project.getGroupId() + "." + project.getArtifactId();
+            packageName = packageName.replace("-", "_");
+
+            String[] packageItems = packageName.split("\\.");
+            packageName =
+                    Arrays.stream(packageItems).map(this::prefixSpecialCase).collect(Collectors.joining("."));
+        }
+
+        return packageName;
+    }
+
+    private String prefixSpecialCase(String name) {
+        if (SourceVersion.isKeyword(name) || !Character.isJavaIdentifierStart(name.charAt(0))) {
+            name = "_" + name;
+        }
+        return name;
     }
 }

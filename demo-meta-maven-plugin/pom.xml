@@ -37,11 +37,17 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>generate-meta-plugin</goal>
+                            <goal>demo-meta-plugin</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
+                    <parameters>
+                        <parameter>
+                            <name>message</name>
+                            <defaultValue>Hello world</defaultValue>
+                        </parameter>
+                    </parameters>
                     <plugins>
                         <plugin>
                             <groupId>com.github.ekryd.echo-maven-plugin</groupId>
