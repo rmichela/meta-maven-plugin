@@ -43,40 +43,42 @@ public class MetaMetaPluginMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         try {
             var activePhase = mojoExecution.getLifecyclePhase();
-            var configurationXml = mojoExecution.getConfiguration();
             var env = MojoExecutor.executionEnvironment(project, mavenSession, pluginManager);
 
-            if (configurationXml != null) {
-                for (Plugin p : plugins) {
-                    getLog().info(p.getGroupId() + ":" + p.getArtifactId() + ":" + p.getVersion());
+            if (plugins == null || plugins.isEmpty()) {
+                getLog().error("No plugins specified. Must configure at least one plugin.");
+                throw new MojoExecutionException("No plugins specified. Must configure at least one plugin.");
+            }
 
-                    var pluginDescriptor = MavenCompatibilityHelper.loadPluginDescriptor(p, env, mavenSession);
-                    var pluginConfiguration = Optional.ofNullable(p.getConfiguration()).map(Xpp3Dom.class::cast).orElse(new Xpp3Dom("configuration"));
+            for (Plugin plugin : plugins) {
+                getLog().info(plugin.getGroupId() + ":" + plugin.getArtifactId() + ":" + plugin.getVersion());
+                var pluginDescriptor = MavenCompatibilityHelper.loadPluginDescriptor(plugin, env, mavenSession);
 
-                    for (PluginExecution ex : p.getExecutions()) {
-                        var executionConfiguration = Optional.ofNullable(ex.getConfiguration()).map(Xpp3Dom.class::cast).orElse(new Xpp3Dom("configuration"));
+                var pluginConfiguration = Optional.ofNullable(plugin.getConfiguration()).map(Xpp3Dom.class::cast).orElse(new Xpp3Dom("configuration"));
 
-                        for (String goal : ex.getGoals()) {
-                            try {
-                                var mojo = pluginDescriptor.getMojo(goal);
-                                var executionPhase = mojo.getPhase();
+                for (PluginExecution execution : plugin.getExecutions()) {
+                    var executionConfiguration = Optional.ofNullable(execution.getConfiguration()).map(Xpp3Dom.class::cast).orElse(new Xpp3Dom("configuration"));
 
-                                getLog().info("Doing " + executionPhase + " in " + activePhase);
-                                MojoExecutor.executeMojo(
-                                        p,
-                                        goal,
-                                        Xpp3DomUtils.mergeXpp3Dom(executionConfiguration, pluginConfiguration),
-                                        env);
-                            } catch (MojoExecutionException e) {
-                                // TODO: Do better
-                                getLog().error("Failed to execute meta goal " + p.getGroupId() + ":" + p.getArtifactId() + ":" + goal + " : " + e.getCause().getMessage());
-                                throw new MojoExecutionException("Failed to execute plugin", e);
-                            }
+                    for (String goal : execution.getGoals()) {
+                        try {
+                            var mojo = pluginDescriptor.getMojo(goal);
+                            var executionPhase = execution.getPhase() == null ? mojo.getPhase() + "(default)" : execution.getPhase();
+
+                            getLog().info("Doing " + executionPhase + " in " + activePhase);
+
+
+                            MojoExecutor.executeMojo(
+                                    plugin,
+                                    goal,
+                                    Xpp3DomUtils.mergeXpp3Dom(executionConfiguration, pluginConfiguration),
+                                    env);
+                        } catch (MojoExecutionException e) {
+                            // TODO: Do better
+                            getLog().error("Failed to execute meta goal " + plugin.getGroupId() + ":" + plugin.getArtifactId() + ":" + goal + " : " + e.getCause().getMessage());
+                            throw new MojoExecutionException("Failed to execute plugin", e);
                         }
                     }
                 }
-            } else {
-                getLog().warn("No XML configuration provided.");
             }
         } catch (Exception e) {
             throw new MojoExecutionException(e.getMessage(), e);
