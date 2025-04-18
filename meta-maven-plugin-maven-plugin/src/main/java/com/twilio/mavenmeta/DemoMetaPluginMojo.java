@@ -119,29 +119,4 @@ public class DemoMetaPluginMojo extends AbstractMojo {
             throw new MojoExecutionException(e.getMessage(), e);
         }
     }
-
-    String getHelpPackageName(String metaPackageName) {
-        String packageName = null;
-        if (metaPackageName != null && !metaPackageName.isBlank()) {
-            packageName = metaPackageName;
-        }
-
-        if (packageName == null) {
-            packageName = project.getGroupId() + "." + project.getArtifactId();
-            packageName = packageName.replace("-", "_");
-
-            String[] packageItems = packageName.split("\\.");
-            packageName =
-                    Arrays.stream(packageItems).map(this::prefixSpecialCase).collect(Collectors.joining("."));
-        }
-
-        return packageName;
-    }
-
-    private String prefixSpecialCase(String name) {
-        if (SourceVersion.isKeyword(name) || !Character.isJavaIdentifierStart(name.charAt(0))) {
-            name = "_" + name;
-        }
-        return name;
-    }
 }
