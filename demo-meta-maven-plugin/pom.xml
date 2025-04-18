@@ -68,7 +68,6 @@
                                     <goals>
                                         <goal>echo</goal>
                                     </goals>
-                                    <phase>compile</phase>
                                     <configuration>
                                         <message>${child2.name}</message>
                                     </configuration>
