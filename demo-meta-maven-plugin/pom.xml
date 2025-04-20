@@ -27,12 +27,26 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+            <version>${maven.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Maven Annotations for Plugin Development -->
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
             <version>${maven.plugin.toolchain.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- Mojo Executor library -->
+        <dependency>
+            <groupId>org.twdata.maven</groupId>
+            <artifactId>mojo-executor</artifactId>
+            <version>2.4.1</version>
         </dependency>
     </dependencies>
 

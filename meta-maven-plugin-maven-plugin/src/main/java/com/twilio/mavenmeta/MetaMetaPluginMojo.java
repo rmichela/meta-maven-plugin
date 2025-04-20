@@ -76,9 +76,6 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-//        var plugin = mojoExecution.getPlugin();
-//        Xpp3Dom configurationXml = (Xpp3Dom) plugin.getConfiguration();
-
         var metaPlugin = new MetaPlugin();
         metaPlugin.packageName = buildPackageName(packageName);
         metaPlugin.className = "MetaInitializeMojo";
@@ -88,18 +85,14 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         metaPlugin.parameters = parameters;
         metaPlugin.encodedPlugins = new ArrayList<>();
 
-        try {
-            for (Plugin plugin : plugins) {
-                metaPlugin.encodedPlugins.add(serializeToBase64(plugin));
-            }
-
-            generateFile("MetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
-            // Utility classes needed for serialized Plugin rehydration
-            generateFile("Plugin.java.mustache", "com.twilio.mavenmeta", "Plugin.java", metaPlugin);
-            generateFile("PluginExecution.java.mustache", "com.twilio.mavenmeta", "PluginExecution.java", metaPlugin);
-        } catch (Exception e) {
-            throw new MojoExecutionException("Error writing generated file", e);
+        for (Plugin plugin : plugins) {
+            metaPlugin.encodedPlugins.add(serializeToBase64(plugin));
         }
+
+        generateFile("MetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
+        // Utility classes needed for serialized Plugin rehydration
+        generateFile("Plugin.java.mustache", "com.twilio.mavenmeta", "Plugin.java", metaPlugin);
+        generateFile("PluginExecution.java.mustache", "com.twilio.mavenmeta", "PluginExecution.java", metaPlugin);
     }
 
     private void generateFile(String templateName, String packageName, String fileName, Object context) throws MojoExecutionException {
@@ -148,11 +141,13 @@ public class MetaMetaPluginMojo extends AbstractMojo {
     }
 
     // Serialize an object to a Base64 string
-    private static String serializeToBase64(Serializable obj) throws IOException {
+    private static String serializeToBase64(Serializable obj) throws MojoExecutionException {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
              ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
             objectOutputStream.writeObject(obj);
             return Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to serialize Plugin object", e);
         }
     }
 }
