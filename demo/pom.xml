@@ -13,16 +13,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <dependencies>
-        <!-- Dependency needed to force reactor build order -->
-        <dependency>
-            <groupId>com.twilio</groupId>
-            <artifactId>demo-meta-maven-plugin</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>

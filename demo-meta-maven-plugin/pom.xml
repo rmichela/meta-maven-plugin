@@ -19,14 +19,6 @@
     </properties>
 
     <dependencies>
-        <!-- Dependency needed to force reactor build order -->
-        <dependency>
-            <groupId>com.twilio</groupId>
-            <artifactId>meta-maven-plugin-maven-plugin</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- Maven Plugin API -->
         <dependency>
             <groupId>org.apache.maven</groupId>
@@ -112,6 +104,11 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <extractors>
+                        <extractor>java-annotations</extractor>
+                    </extractors>
+                </configuration>
             </plugin>
         </plugins>
     </build>

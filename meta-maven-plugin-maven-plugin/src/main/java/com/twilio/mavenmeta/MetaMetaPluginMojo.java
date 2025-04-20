@@ -11,16 +11,18 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import java.io.*;
-import java.util.Arrays;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.stream.Collectors;
 
-@Mojo(name = "meta-meta-plugin", defaultPhase = LifecyclePhase.GENERATE_SOURCES, threadSafe = true)
+@Mojo(name = "meta-meta-plugin", defaultPhase = LifecyclePhase.GENERATE_SOURCES, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class MetaMetaPluginMojo extends AbstractMojo {
     @Inject
     private MojoExecution mojoExecution;
@@ -49,6 +51,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
      * </ul>
      */
     @org.apache.maven.plugins.annotations.Parameter
+    @SuppressWarnings({"unused"})
     private String packageName;
 
     /**
@@ -72,33 +75,50 @@ public class MetaMetaPluginMojo extends AbstractMojo {
     private static final MustacheFactory MUSTACHE_FACTORY = new DefaultMustacheFactory();
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() throws MojoExecutionException {
+//        var plugin = mojoExecution.getPlugin();
+//        Xpp3Dom configurationXml = (Xpp3Dom) plugin.getConfiguration();
+
+        var metaPlugin = new MetaPlugin();
+        metaPlugin.packageName = buildPackageName(packageName);
+        metaPlugin.className = "MetaInitializeMojo";
+        metaPlugin.goalName = "meta-initialize";
+        metaPlugin.defaultPhase = "org.apache.maven.plugins.annotations.LifecyclePhase.INITIALIZE";
+        metaPlugin.threadSafe = "true";
+        metaPlugin.parameters = parameters;
+        metaPlugin.encodedPlugins = new ArrayList<>();
+
         try {
-            var metaPlugin = new MetaPlugin();
-            metaPlugin.packageName = buildPackageName(packageName);
-            metaPlugin.className = "MetaInitializeMojo";
-            metaPlugin.goalName = "meta-initialize";
-            metaPlugin.defaultPhase = "org.apache.maven.plugins.annotations.LifecyclePhase.INITIALIZE";
-            metaPlugin.threadSafe = "true";
-
-            // Get the target/generated-sources directory
-            File generatedSourcesDir = new File(project.getBuild().getDirectory(), "generated-sources/meta-maven-plugin/" + metaPlugin.packageName.replace('.', '/'));
-
-            // Ensure the directory exists
-            if (!generatedSourcesDir.exists() && !generatedSourcesDir.mkdirs()) {
-                throw new MojoExecutionException("Failed to create directory: " + generatedSourcesDir.getAbsolutePath());
+            for (Plugin plugin : plugins) {
+                metaPlugin.encodedPlugins.add(serializeToBase64(plugin));
             }
 
-            File outputFile = new File(generatedSourcesDir, metaPlugin.className + ".java");
-
-            try (FileWriter writer = new FileWriter(outputFile)) {
-                Mustache template = MUSTACHE_FACTORY.compile("MetaPluginMojo.java.mustache");
-                template.execute(writer, metaPlugin).flush();
-            }
-
-            project.addCompileSourceRoot(generatedSourcesDir.getAbsolutePath());
-        } catch (IOException e) {
+            generateFile("MetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
+            // Utility classes needed for serialized Plugin rehydration
+            generateFile("Plugin.java.mustache", "com.twilio.mavenmeta", "Plugin.java", metaPlugin);
+            generateFile("PluginExecution.java.mustache", "com.twilio.mavenmeta", "PluginExecution.java", metaPlugin);
+        } catch (Exception e) {
             throw new MojoExecutionException("Error writing generated file", e);
+        }
+    }
+
+    private void generateFile(String templateName, String packageName, String fileName, Object context) throws MojoExecutionException {
+        File sourceRoot = new File(project.getBuild().getDirectory(), "generated-sources/meta-maven-plugin/");
+        project.addCompileSourceRoot(sourceRoot.getAbsolutePath());
+
+        File packageDirectory = new File(sourceRoot, packageName.replace('.', '/'));
+
+        // Ensure the directory exists
+        if (!packageDirectory.exists() && !packageDirectory.mkdirs()) {
+            throw new MojoExecutionException("Failed to create output directory: " + packageDirectory.getAbsolutePath());
+        }
+
+        File outputFile = new File(packageDirectory, fileName);
+        try (FileWriter writer = new FileWriter(outputFile)) {
+            Mustache template = MUSTACHE_FACTORY.compile(templateName);
+            template.execute(writer, context).flush();
+        } catch (Exception e) {
+            throw new MojoExecutionException("Error writing generated file " + fileName, e);
         }
     }
 
@@ -125,5 +145,14 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             name = "_" + name;
         }
         return name;
+    }
+
+    // Serialize an object to a Base64 string
+    private static String serializeToBase64(Serializable obj) throws IOException {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
+            objectOutputStream.writeObject(obj);
+            return Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
+        }
     }
 }

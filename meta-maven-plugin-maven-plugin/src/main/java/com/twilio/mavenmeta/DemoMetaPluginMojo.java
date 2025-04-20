@@ -6,19 +6,17 @@ import org.apache.maven.plugin.*;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.*;
 import org.twdata.maven.mojoexecutor.MavenCompatibilityHelper;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 
 import javax.inject.Inject;
-import javax.lang.model.SourceVersion;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-@Mojo(name = "demo-meta-plugin", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true)
+@Mojo(name = "demo-meta-plugin", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class DemoMetaPluginMojo extends AbstractMojo {
 
     @Inject

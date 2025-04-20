@@ -1,13 +1,50 @@
 package {{packageName}};
 
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
-@Mojo(name = "{{goalName}}", defaultPhase = {{defaultPhase}}, threadSafe = {{threadSafe}})
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+
+@Mojo(name = "{{goalName}}", defaultPhase = {{defaultPhase}}, threadSafe = {{threadSafe}}, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class {{className}} extends AbstractMojo {
+{{#parameters}}
+    @org.apache.maven.plugins.annotations.Parameter(alias = "{{alias}}", defaultValue = "{{defaultValue}}", property = "{{property}}", readonly = {{readonly}}, required = {{required}})
+    @SuppressWarnings({"unused"})
+    private String {{name}};
+{{/parameters}}
+
+    private final List<String> encodedPlugins = new ArrayList<String>() { {
+{{#encodedPlugins}}
+        add("{{.}}");
+{{/encodedPlugins}}
+    } };
+
     @Override
     public void execute() throws MojoExecutionException {
-        getLog().info("Hello World!");
+        try {
+            for (String encodedPlugin : encodedPlugins) {
+                Plugin plugin = deserializeFromBase64(encodedPlugin, Plugin.class);
+                getLog().info("Plugin: " + plugin.getGroupId() + ":" + plugin.getArtifactId());
+            }
+        } catch (Exception e) {
+            throw new MojoExecutionException("KABOOM", e);
+        }
+    }
+
+    // Deserialize an object from a Base64 string
+    private static <T> T deserializeFromBase64(String base64, Class<T> clazz) throws IOException, ClassNotFoundException {
+        byte[] data = Base64.getDecoder().decode(base64);
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
+             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
+            return clazz.cast(objectInputStream.readObject());
+        }
     }
 }
