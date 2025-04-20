@@ -75,7 +75,12 @@ public class MetaMetaPluginMojo extends AbstractMojo {
     private static final MustacheFactory MUSTACHE_FACTORY = new DefaultMustacheFactory();
 
     @Override
-    public void execute() throws MojoExecutionException {
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        assertDependency("org.apache.maven", "maven-core", "provided");
+        assertDependency("org.apache.maven", "maven-plugin-api", "provided");
+        assertDependency("org.apache.maven.plugin-tools", "maven-plugin-annotations", "provided");
+        assertDependency("org.twdata.maven", "mojo-executor", "compile");
+
         var metaPlugin = new MetaPlugin();
         metaPlugin.packageName = buildPackageName(packageName);
         metaPlugin.className = "MetaInitializeMojo";
@@ -112,6 +117,22 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             template.execute(writer, context).flush();
         } catch (Exception e) {
             throw new MojoExecutionException("Error writing generated file " + fileName, e);
+        }
+    }
+
+    private void assertDependency(String groupId, String artifactId, String scope) throws MojoFailureException {
+        boolean dependencyFound = project.getDependencies().stream()
+                .anyMatch(dependency -> groupId.equals(dependency.getGroupId()) &&
+                                                    artifactId.equals(dependency.getArtifactId()));
+        if (!dependencyFound) {
+            getLog().error("Missing required Maven dependency. Add this to your POM:");
+            getLog().error("<dependency>");
+            getLog().error("    <groupId>" + groupId + "</groupId>");
+            getLog().error("    <artifactId>" + artifactId + "</artifactId>");
+            getLog().error("    <version>{latest}</version>");
+            getLog().error("    <scope>" + scope + "</scope>");
+            getLog().error("</dependency>");
+            throw new MojoFailureException("Missing required Maven dependency: " + groupId + ":" + artifactId);
         }
     }
 
