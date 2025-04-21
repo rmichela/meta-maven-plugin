@@ -6,12 +6,16 @@ import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomUtils;
+import org.twdata.maven.mojoexecutor.MavenCompatibilityHelper;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 
 import javax.inject.Inject;
@@ -25,8 +29,13 @@ import java.util.Optional;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
-@Mojo(name = "{{goalName}}", defaultPhase = {{defaultPhase}}, threadSafe = {{threadSafe}}, requiresDependencyResolution = ResolutionScope.COMPILE)
-public class {{className}} extends AbstractMojo {
+public abstract class AbstractMetaPluginMojo extends AbstractMojo {
+    private LifecyclePhase phase;
+
+    protected AbstractMetaPluginMojo(LifecyclePhase phase) {
+        this.phase = phase;
+    }
+
     @Inject
     private BuildPluginManager pluginManager;
 
@@ -53,20 +62,29 @@ public class {{className}} extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException {
-        ExecutionEnvironment env = executionEnvironment(project, mavenSession, pluginManager);
-        for (Plugin plugin : deserializePlugins(encodedPlugins)) {
-            Xpp3Dom pluginConfiguration = Optional.ofNullable(plugin.getConfiguration()).map(Xpp3Dom.class::cast).orElse(new Xpp3Dom("configuration"));
-            for (PluginExecution execution : plugin.getExecutions()) {
-                Xpp3Dom executionConfiguration = Optional.ofNullable(execution.getConfiguration()).map(Xpp3Dom.class::cast).orElse(new Xpp3Dom("configuration"));
-                for (String goal : execution.getGoals()) {
-                    getLog().info("Executing plugin: " + plugin.getGroupId() + ":" + plugin.getArtifactId() + ":" + plugin.getVersion() + " Goal:" + goal);
-                    executeMojo(
-                        plugin,
-                        goal,
-                        Xpp3DomUtils.mergeXpp3Dom(executionConfiguration, pluginConfiguration),
-                        env);
+        try {
+            ExecutionEnvironment env = executionEnvironment(project, mavenSession, pluginManager);
+            for (Plugin plugin : deserializePlugins(encodedPlugins)) {
+                PluginDescriptor pluginDescriptor = MavenCompatibilityHelper.loadPluginDescriptor(plugin, env, mavenSession);
+                Xpp3Dom pluginConfiguration = Optional.ofNullable(plugin.getConfiguration()).map(Xpp3Dom.class::cast).orElse(new Xpp3Dom("configuration"));
+                for (PluginExecution execution : plugin.getExecutions()) {
+                    Xpp3Dom executionConfiguration = Optional.ofNullable(execution.getConfiguration()).map(Xpp3Dom.class::cast).orElse(new Xpp3Dom("configuration"));
+                    for (String goal : execution.getGoals()) {
+                        MojoDescriptor mojo = pluginDescriptor.getMojo(goal);
+                        String goalPhase = execution.getPhase() == null ? mojo.getPhase() : execution.getPhase();
+                        if (phase.id().equals(goalPhase)) {
+                            getLog().info("Executing plugin: " + plugin.getGroupId() + ":" + plugin.getArtifactId() + ":" + plugin.getVersion() + " Goal:" + goal);
+                            executeMojo(
+                                    plugin,
+                                    goal,
+                                    Xpp3DomUtils.mergeXpp3Dom(executionConfiguration, pluginConfiguration),
+                                    env);
+                        }
+                    }
                 }
             }
+        } catch (Exception e) {
+            throw new MojoExecutionException(e.getMessage(), e);
         }
     }
 

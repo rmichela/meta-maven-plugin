@@ -76,14 +76,14 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         assertMavenPluginPlugin();
         assertDependency("org.apache.maven", "maven-core", "provided");
         assertDependency("org.apache.maven", "maven-plugin-api", "provided");
-        assertDependency("org.apache.maven.plugin-tools", "maven-plugin-annotations", "provided");
+        assertDependency("org.apache.maven.plugin-tools", "maven-plugin-annotations", "compile");
         assertDependency("org.twdata.maven", "mojo-executor", "compile");
 
         var metaPlugin = new MetaPlugin();
         metaPlugin.packageName = buildPackageName(packageName);
-        metaPlugin.className = "MetaInitializeMojo";
-        metaPlugin.goalName = "meta-initialize";
-        metaPlugin.defaultPhase = "org.apache.maven.plugins.annotations.LifecyclePhase.INITIALIZE";
+        metaPlugin.className = "InitializeMojo";
+        metaPlugin.goalName = "initialize";
+        metaPlugin.defaultPhase = "LifecyclePhase.INITIALIZE";
         metaPlugin.threadSafe = "true";
         metaPlugin.parameters = parameters;
         metaPlugin.encodedPlugins = new ArrayList<>();
@@ -92,7 +92,8 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             metaPlugin.encodedPlugins.add(serializeToBase64(plugin));
         }
 
-        generateFile("MetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
+        generateFile("PhaseMetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
+        generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, "AbstractMetaPluginMojo.java", metaPlugin);
         // Utility classes needed for serialized Plugin rehydration
         generateFile("Plugin.java.mustache", "metamaven", "Plugin.java", metaPlugin);
         generateFile("PluginExecution.java.mustache", "metamaven", "PluginExecution.java", metaPlugin);
@@ -121,7 +122,8 @@ public class MetaMetaPluginMojo extends AbstractMojo {
     private void assertDependency(String groupId, String artifactId, String scope) throws MojoFailureException {
         boolean dependencyFound = project.getDependencies().stream()
                 .anyMatch(dependency -> groupId.equals(dependency.getGroupId()) &&
-                                                    artifactId.equals(dependency.getArtifactId()));
+                                                    artifactId.equals(dependency.getArtifactId()) &&
+                                                    scope.equals(dependency.getScope()));
         if (!dependencyFound) {
             getLog().error("Missing required Maven dependency. Add this to your POM:");
             getLog().error("<dependency>");

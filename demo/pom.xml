@@ -24,7 +24,7 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>meta-initialize</goal>
+                            <goal>initialize</goal>
                         </goals>
                     </execution>
                 </executions>
