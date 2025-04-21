@@ -1,4 +1,4 @@
-package com.twilio.mavenmeta;
+package metamaven;
 
 public class Parameter {
     private String name;

@@ -1,4 +1,4 @@
-package com.twilio.mavenmeta;
+package metamaven;
 
 import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
@@ -52,7 +52,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
     /**
      * A list of parameters for use by the generated meta plugin. Has the same properties as
-     * {@link com.twilio.mavenmeta.Parameter}. All parameters are of type String and are interpolated into
+     * {@link Parameter}. All parameters are of type String and are interpolated into
      * the meta plugin configuration. Meta plugin interpolated parameters are prefixed with #{} instead of ${}.
      */
     @org.apache.maven.plugins.annotations.Parameter()
@@ -94,8 +94,8 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
         generateFile("MetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
         // Utility classes needed for serialized Plugin rehydration
-        generateFile("Plugin.java.mustache", "com.twilio.mavenmeta", "Plugin.java", metaPlugin);
-        generateFile("PluginExecution.java.mustache", "com.twilio.mavenmeta", "PluginExecution.java", metaPlugin);
+        generateFile("Plugin.java.mustache", "metamaven", "Plugin.java", metaPlugin);
+        generateFile("PluginExecution.java.mustache", "metamaven", "PluginExecution.java", metaPlugin);
     }
 
     private void generateFile(String templateName, String packageName, String fileName, Object context) throws MojoExecutionException {

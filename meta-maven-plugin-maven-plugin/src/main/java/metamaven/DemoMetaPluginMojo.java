@@ -1,4 +1,4 @@
-package com.twilio.mavenmeta;
+package metamaven;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.PluginExecution;
@@ -50,12 +50,12 @@ public class DemoMetaPluginMojo extends AbstractMojo {
 
     /**
      * A list of parameters for use by the generated meta plugin. Has the same properties as
-     * {@link com.twilio.mavenmeta.Parameter}. All parameters are of type String and are interpolated into
+     * {@link metamaven.Parameter}. All parameters are of type String and are interpolated into
      * the meta plugin configuration. Meta plugin interpolated parameters are prefixed with #{} instead of ${}.
      */
     @Parameter(name = "parameters")
     @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
-    private List<com.twilio.mavenmeta.Parameter> parameters;
+    private List<metamaven.Parameter> parameters;
 
     /**
      * A &lt;plugin&gt; element for each plugin to be executed. The plugins follow the same format as build plugins.

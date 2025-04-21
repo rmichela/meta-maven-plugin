@@ -1,4 +1,4 @@
-package com.twilio.mavenmeta;
+package metamaven;
 
 import java.util.List;
 
