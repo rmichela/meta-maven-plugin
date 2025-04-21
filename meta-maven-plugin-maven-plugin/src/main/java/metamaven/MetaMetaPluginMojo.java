@@ -92,11 +92,17 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             metaPlugin.encodedPlugins.add(serializeToBase64(plugin));
         }
 
-        generateFile("PhaseMetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
-        generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, "AbstractMetaPluginMojo.java", metaPlugin);
         // Utility classes needed for serialized Plugin rehydration
         generateFile("Plugin.java.mustache", "metamaven", "Plugin.java", metaPlugin);
         generateFile("PluginExecution.java.mustache", "metamaven", "PluginExecution.java", metaPlugin);
+
+        generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, "AbstractMetaPluginMojo.java", metaPlugin);
+        for (LifecyclePhase phase : LifecyclePhase.values()) {
+            metaPlugin.className = phase.name() + "Mojo";
+            metaPlugin.goalName = phase.id();
+            metaPlugin.defaultPhase = "LifecyclePhase." + phase.name();
+            generateFile("PhaseMetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
+        }
     }
 
     private void generateFile(String templateName, String packageName, String fileName, Object context) throws MojoExecutionException {
