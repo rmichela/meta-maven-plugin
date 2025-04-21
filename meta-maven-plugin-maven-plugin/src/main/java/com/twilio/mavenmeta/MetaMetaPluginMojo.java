@@ -4,21 +4,17 @@ import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.BuildPluginManager;
-import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.*;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.twdata.maven.mojoexecutor.MavenCompatibilityHelper;
+import org.twdata.maven.mojoexecutor.MojoExecutor;
 
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import java.io.*;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -76,6 +72,8 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        assertMavenPluginPackaging();
+        assertMavenPluginPlugin();
         assertDependency("org.apache.maven", "maven-core", "provided");
         assertDependency("org.apache.maven", "maven-plugin-api", "provided");
         assertDependency("org.apache.maven.plugin-tools", "maven-plugin-annotations", "provided");
@@ -133,6 +131,53 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             getLog().error("    <scope>" + scope + "</scope>");
             getLog().error("</dependency>");
             throw new MojoFailureException("Missing required Maven dependency: " + groupId + ":" + artifactId);
+        }
+    }
+
+    private void assertMavenPluginPlugin() throws MojoFailureException {
+        boolean buildPluginFound = project.getBuildPlugins().stream()
+                .anyMatch(plugin -> "org.apache.maven.plugins".equals(plugin.getGroupId()) &&
+                        "maven-plugin-plugin".equals(plugin.getArtifactId()));
+
+        if (!buildPluginFound) {
+            getLog().error("Missing required Maven build plugin. Add this to your POM:");
+            getLog().error("<build>");
+            getLog().error("    <plugins>");
+            getLog().error("        <plugin>");
+            getLog().error("            <groupId>org.apache.maven.plugins</groupId>");
+            getLog().error("            <artifactId>maven-plugin-plugin</artifactId>");
+            getLog().error("            <version>{latest}</version>");
+            getLog().error("            <executions>");
+            getLog().error("                <execution>");
+            getLog().error("                    <goals>");
+            getLog().error("                        <goal>helpmojo</goal>");
+            getLog().error("                        <goal>descriptor</goal>");
+            getLog().error("                    </goals>");
+            getLog().error("                </execution>");
+            getLog().error("            </executions>");
+            getLog().error("        </plugin>");
+            getLog().error("    </plugins>");
+            getLog().error("</build>");
+            throw new MojoFailureException("Missing required Maven build plugin: org.apache.maven.plugins:maven-plugin-plugin");
+        }
+    }
+
+    private void assertMavenPluginPackaging() throws MojoFailureException {
+        if (!project.getPackaging().equals("maven-plugin")) {
+            getLog().error("The project must be packaged as a Maven plugin. Set the packaging to 'maven-plugin' in your POM.");
+            getLog().error("<packaging>maven-plugin</packaging>");
+            throw new MojoFailureException("The project must be packaged as a Maven plugin.");
+        }
+    }
+
+    private boolean isPluginThreadSafe(Plugin plugin, String goal) throws MojoExecutionException {
+        try {
+            var env = MojoExecutor.executionEnvironment(project, mavenSession, pluginManager);
+            var pluginDescriptor = MavenCompatibilityHelper.loadPluginDescriptor(plugin, env, mavenSession);
+            var mojo = pluginDescriptor.getMojo(goal);
+            return mojo.isThreadSafe();
+        } catch (PluginResolutionException | PluginDescriptorParsingException | InvalidPluginDescriptorException | PluginNotFoundException e) {
+            throw new MojoExecutionException("Failed to determine thread safety of plugin", e);
         }
     }
 
