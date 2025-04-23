@@ -69,8 +69,8 @@
                 <configuration>
                     <parameters>
                         <parameter>
-                            <name>message</name>
-                            <defaultValue>Hello world</defaultValue>
+                            <name>greeting</name>
+                            <defaultValue>Hello</defaultValue>
                         </parameter>
                     </parameters>
                     <plugins>
@@ -87,7 +87,7 @@
                                 </execution>
                             </executions>
                             <configuration>
-                                <message>${child1.name}</message>
+                                <message>@{greeting} ${child1.name}</message>
                             </configuration>
                         </plugin>
                         <plugin>
@@ -100,7 +100,7 @@
                                         <goal>echo</goal>
                                     </goals>
                                     <configuration>
-                                        <message>${child2.name}</message>
+                                        <message>@{greeting} ${child2.name}</message>
                                     </configuration>
                                 </execution>
                             </executions>

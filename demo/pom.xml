@@ -13,6 +13,7 @@
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <demo.plugin.greeting>Bonjour</demo.plugin.greeting>
     </properties>
 
     <build>
@@ -29,6 +30,9 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <greeting>${demo.plugin.greeting}</greeting>
+                </configuration>
             </plugin>
         </plugins>
     </build>

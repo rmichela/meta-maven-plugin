@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 
 import static org.twdata.maven.mojoexecutor.MojoExecutor.*;
 
@@ -100,13 +101,18 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
 
     private List<Plugin> deserializePlugins() throws MojoExecutionException {
         try {
+            Properties parameters = new Properties();
+{{#parameters}}
+            parameters.put("{{name}}", {{name}});
+{{/parameters}}
+
             Model model = modelReader.read(new StringReader(MODEL), null);
 
             ModelBuildingRequest request = new DefaultModelBuildingRequest()
                     .setProcessPlugins(true)
                     .setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_STRICT)
                     .setSystemProperties(System.getProperties())
-                    .setUserProperties(project.getProperties());
+                    .setUserProperties(parameters);
 
             ModelProblemCollector collector = new ModelProblemCollector() {
                 @Override

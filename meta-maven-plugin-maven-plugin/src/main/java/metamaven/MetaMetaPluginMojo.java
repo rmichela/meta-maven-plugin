@@ -106,7 +106,9 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         project.addChild(build);
         build.addChild(plugins);
         var xml = project.toString();
-        return xml.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
+        xml = xml.replace("@{", "${");
+        xml = xml.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
+        return xml;
     }
 
     private void generateFile(String templateName, String packageName, String fileName, Object context) throws MojoExecutionException {
