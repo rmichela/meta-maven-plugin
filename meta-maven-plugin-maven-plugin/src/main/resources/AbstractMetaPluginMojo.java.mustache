@@ -1,8 +1,15 @@
 package {{packageName}};
 
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
+import org.apache.maven.model.building.DefaultModelBuildingRequest;
+import org.apache.maven.model.building.ModelBuildingRequest;
+import org.apache.maven.model.building.ModelProblemCollector;
+import org.apache.maven.model.building.ModelProblemCollectorRequest;
+import org.apache.maven.model.interpolation.ModelInterpolator;
+import org.apache.maven.model.io.ModelReader;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -22,6 +29,7 @@ import javax.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -39,6 +47,12 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
     @Inject
     private BuildPluginManager pluginManager;
 
+    @Inject
+    private ModelReader modelReader;
+
+    @Inject
+    private ModelInterpolator interpolator;
+
     @Parameter(defaultValue = "${session}", readonly = true, required = true)
     @SuppressWarnings({"unused"})
     private MavenSession mavenSession;
@@ -47,24 +61,20 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
     @SuppressWarnings({"unused"})
     private MavenProject project;
 
+    private static final String MODEL = """{{{pluginConfiguration}}}
+    """;
+
 {{#parameters}}
     @org.apache.maven.plugins.annotations.Parameter(alias = "{{alias}}", defaultValue = "{{defaultValue}}", property = "{{property}}", readonly = {{readonly}}, required = {{required}})
     @SuppressWarnings({"unused"})
     private String {{name}};
 {{/parameters}}
 
-    // Base64 encoded Plugin objects, serialized with Java object serialization. Gross, but it works.
-    private final List<String> encodedPlugins = new ArrayList<String>() { {
-{{#encodedPlugins}}
-        add("{{{.}}}");
-{{/encodedPlugins}}
-    } };
-
     @Override
     public void execute() throws MojoExecutionException {
         try {
             ExecutionEnvironment env = executionEnvironment(project, mavenSession, pluginManager);
-            for (Plugin plugin : deserializePlugins(encodedPlugins)) {
+            for (Plugin plugin : deserializePlugins()) {
                 PluginDescriptor pluginDescriptor = MavenCompatibilityHelper.loadPluginDescriptor(plugin, env, mavenSession);
                 Xpp3Dom pluginConfiguration = Optional.ofNullable(plugin.getConfiguration()).map(Xpp3Dom.class::cast).orElse(new Xpp3Dom("configuration"));
                 for (PluginExecution execution : plugin.getExecutions()) {
@@ -88,25 +98,26 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
         }
     }
 
-    private static List<Plugin> deserializePlugins(List<String> encodedPlugins) throws MojoExecutionException {
-        List<Plugin> plugins = new ArrayList<>();
-        for (String encodedPlugin : encodedPlugins) {
-            try {
-                Plugin plugin = deserializeFromBase64(encodedPlugin, Plugin.class);
-                plugins.add(plugin);
-            } catch (IOException | ClassNotFoundException e) {
-                throw new MojoExecutionException("Failed to deserialize plugin", e);
-            }
-        }
-        return plugins;
-    }
+    private List<Plugin> deserializePlugins() throws MojoExecutionException {
+        try {
+            Model model = modelReader.read(new StringReader(MODEL), null);
 
-    // Deserialize an object from a Base64 string
-    private static <T> T deserializeFromBase64(String base64, Class<T> clazz) throws IOException, ClassNotFoundException {
-        byte[] data = Base64.getDecoder().decode(base64);
-        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
-             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
-            return clazz.cast(objectInputStream.readObject());
+            ModelBuildingRequest request = new DefaultModelBuildingRequest()
+                    .setProcessPlugins(true)
+                    .setValidationLevel(ModelBuildingRequest.VALIDATION_LEVEL_STRICT)
+                    .setSystemProperties(System.getProperties())
+                    .setUserProperties(project.getProperties());
+
+            ModelProblemCollector collector = new ModelProblemCollector() {
+                @Override
+                public void add(ModelProblemCollectorRequest req) {
+                    getLog().error(req.getMessage(), req.getException());
+                }
+            };
+            model = interpolator.interpolateModel(model, null, request, collector);
+            return model.getBuild().getPlugins();
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to parse embedded plugin model:" + e.getMessage(), e);
         }
     }
 }

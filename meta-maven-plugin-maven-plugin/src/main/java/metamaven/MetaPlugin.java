@@ -1,5 +1,6 @@
 package metamaven;
 
+
 import java.util.List;
 
 public class MetaPlugin {
@@ -9,5 +10,5 @@ public class MetaPlugin {
     public String defaultPhase;
     public String threadSafe;
     public List<Parameter> parameters;
-    public List<String> encodedPlugins;
+    public String pluginConfiguration;
 }

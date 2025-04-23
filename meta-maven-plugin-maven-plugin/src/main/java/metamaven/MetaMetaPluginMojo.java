@@ -9,6 +9,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.codehaus.plexus.util.xml.Xpp3DomUtils;
 import org.twdata.maven.mojoexecutor.MavenCompatibilityHelper;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 
@@ -19,6 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Mojo(name = "meta-meta-plugin", defaultPhase = LifecyclePhase.GENERATE_SOURCES, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE)
+@SuppressWarnings({"unused"})
 public class MetaMetaPluginMojo extends AbstractMojo {
     @Inject
     private MojoExecution mojoExecution;
@@ -85,15 +88,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         metaPlugin.goalName = "initialize";
         metaPlugin.defaultPhase = "LifecyclePhase.INITIALIZE";
         metaPlugin.parameters = parameters;
-        metaPlugin.encodedPlugins = new ArrayList<>();
-
-        for (Plugin plugin : plugins) {
-            metaPlugin.encodedPlugins.add(serializeToBase64(plugin));
-        }
-
-        // Utility classes needed for serialized Plugin rehydration
-        generateFile("Plugin.java.mustache", "metamaven", "Plugin.java", metaPlugin);
-        generateFile("PluginExecution.java.mustache", "metamaven", "PluginExecution.java", metaPlugin);
+        metaPlugin.pluginConfiguration = pluginsToXml(mojoExecution.getConfiguration().getChild("plugins"));
 
         generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, "AbstractMetaPluginMojo.java", metaPlugin);
         for (String phase : phasesInUse(plugins)) {
@@ -103,6 +98,15 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             metaPlugin.threadSafe = allPluginsThreadSafe(plugins, phase) ? "true" : "false";
             generateFile("PhaseMetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
         }
+    }
+
+    private String pluginsToXml(Xpp3Dom plugins) {
+        var project = new Xpp3Dom("project");
+        var build = new Xpp3Dom("build");
+        project.addChild(build);
+        build.addChild(plugins);
+        var xml = project.toString();
+        return xml.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
     }
 
     private void generateFile(String templateName, String packageName, String fileName, Object context) throws MojoExecutionException {
@@ -244,16 +248,5 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             name = "_" + name;
         }
         return name;
-    }
-
-    // Serialize an object to a Base64 string
-    private static String serializeToBase64(Serializable obj) throws MojoExecutionException {
-        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
-            objectOutputStream.writeObject(obj);
-            return Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
-        } catch (IOException e) {
-            throw new MojoExecutionException("Failed to serialize Plugin object", e);
-        }
     }
 }
