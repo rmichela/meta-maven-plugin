@@ -21,7 +21,7 @@ public class Parameter {
     }
 
     public String getDefaultValue() {
-        return defaultValue;
+        return defaultValue.replace("@{", "${");
     }
 
     public boolean isRequired() {
