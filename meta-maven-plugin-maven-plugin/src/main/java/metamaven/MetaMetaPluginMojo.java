@@ -79,7 +79,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         assertMavenPluginPlugin();
         assertDependency("org.apache.maven", "maven-core", "provided");
         assertDependency("org.apache.maven", "maven-plugin-api", "provided");
-        assertDependency("org.apache.maven.plugin-tools", "maven-plugin-annotations", "compile");
+        assertDependency("org.apache.maven.plugin-tools", "maven-plugin-annotations", "provided");
         assertDependency("org.twdata.maven", "mojo-executor", "compile");
 
         var metaPlugin = new MetaPlugin();
