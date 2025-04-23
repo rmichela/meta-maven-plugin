@@ -84,7 +84,6 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         metaPlugin.className = "InitializeMojo";
         metaPlugin.goalName = "initialize";
         metaPlugin.defaultPhase = "LifecyclePhase.INITIALIZE";
-        metaPlugin.threadSafe = "true";
         metaPlugin.parameters = parameters;
         metaPlugin.encodedPlugins = new ArrayList<>();
 
@@ -97,10 +96,11 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         generateFile("PluginExecution.java.mustache", "metamaven", "PluginExecution.java", metaPlugin);
 
         generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, "AbstractMetaPluginMojo.java", metaPlugin);
-        for (LifecyclePhase phase : LifecyclePhase.values()) {
-            metaPlugin.className = phase.name() + "Mojo";
-            metaPlugin.goalName = phase.id();
-            metaPlugin.defaultPhase = "LifecyclePhase." + phase.name();
+        for (String phase : phasesInUse(plugins)) {
+            metaPlugin.className = LifecyclePhases.toClassName(LifecyclePhases.fromString(phase))+ "Mojo";
+            metaPlugin.goalName = LifecyclePhases.fromString(phase).id();
+            metaPlugin.defaultPhase = "LifecyclePhase." + LifecyclePhases.fromString(phase).name();
+            metaPlugin.threadSafe = allPluginsThreadSafe(plugins, phase) ? "true" : "false";
             generateFile("PhaseMetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
         }
     }
@@ -178,14 +178,46 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         }
     }
 
-    private boolean isPluginThreadSafe(Plugin plugin, String goal) throws MojoExecutionException {
+    private boolean allPluginsThreadSafe(List<Plugin> plugins, String phase) throws MojoExecutionException {
         try {
             var env = MojoExecutor.executionEnvironment(project, mavenSession, pluginManager);
-            var pluginDescriptor = MavenCompatibilityHelper.loadPluginDescriptor(plugin, env, mavenSession);
-            var mojo = pluginDescriptor.getMojo(goal);
-            return mojo.isThreadSafe();
+            for (Plugin plugin : plugins) {
+                var pluginDescriptor = MavenCompatibilityHelper.loadPluginDescriptor(plugin, env, mavenSession);
+                for (org.apache.maven.model.PluginExecution execution : plugin.getExecutions()) {
+                    for (String goal : execution.getGoals()) {
+                        var mojo = pluginDescriptor.getMojo(goal);
+                        if (mojo.getPhase().equals(phase) && !mojo.isThreadSafe()) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
         } catch (PluginResolutionException | PluginDescriptorParsingException | InvalidPluginDescriptorException | PluginNotFoundException e) {
             throw new MojoExecutionException("Failed to determine thread safety of plugin", e);
+        }
+    }
+
+    private Set<String> phasesInUse(List<Plugin> plugins) throws MojoExecutionException {
+        try {
+            var env = MojoExecutor.executionEnvironment(project, mavenSession, pluginManager);
+            Set<String> phases = new HashSet<>();
+
+            for (Plugin plugin : plugins) {
+                var pluginDescriptor = MavenCompatibilityHelper.loadPluginDescriptor(plugin, env, mavenSession);
+                for (org.apache.maven.model.PluginExecution execution : plugin.getExecutions()) {
+                    if (execution.getPhase() != null) {
+                        phases.add(execution.getPhase());
+                    }
+                    for (String goal : execution.getGoals()) {
+                        var mojo = pluginDescriptor.getMojo(goal);
+                        phases.add(mojo.getPhase());
+                    }
+                }
+            }
+            return phases;
+        } catch (Exception e) {
+            throw new MojoExecutionException("Failed to determine phases in use", e);
         }
     }
 
