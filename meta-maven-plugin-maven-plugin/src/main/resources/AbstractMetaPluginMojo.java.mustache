@@ -12,6 +12,7 @@ import org.apache.maven.model.interpolation.ModelInterpolator;
 import org.apache.maven.model.io.ModelReader;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.BuildPluginManager;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
@@ -43,6 +44,9 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
     protected AbstractMetaPluginMojo(String phase) {
         this.phase = phase;
     }
+
+    @Inject
+    private MojoExecution mojoExecution;
 
     @Inject
     private BuildPluginManager pluginManager;
@@ -77,13 +81,21 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
             for (Plugin plugin : deserializePlugins()) {
                 PluginDescriptor pluginDescriptor = MavenCompatibilityHelper.loadPluginDescriptor(plugin, env, mavenSession);
                 Xpp3Dom pluginConfiguration = Optional.ofNullable(plugin.getConfiguration()).map(Xpp3Dom.class::cast).orElse(new Xpp3Dom("configuration"));
+
+                mojoExecution.getPlugin().getDependencies().stream()
+                        .filter(dependency -> plugin.getGroupId().equals(dependency.getGroupId()) && plugin.getArtifactId().equals(dependency.getArtifactId()))
+                        .findFirst()
+                        .ifPresent(dependency -> {
+                            plugin.setVersion(dependency.getVersion());
+                        });
+
                 for (PluginExecution execution : plugin.getExecutions()) {
                     Xpp3Dom executionConfiguration = Optional.ofNullable(execution.getConfiguration()).map(Xpp3Dom.class::cast).orElse(new Xpp3Dom("configuration"));
                     for (String goal : execution.getGoals()) {
                         MojoDescriptor mojo = pluginDescriptor.getMojo(goal);
                         String goalPhase = execution.getPhase() == null ? mojo.getPhase() : execution.getPhase();
                         if (phase.equals(goalPhase)) {
-                            getLog().info("Executing plugin: " + plugin.getGroupId() + ":" + plugin.getArtifactId() + ":" + plugin.getVersion() + " Goal:" + goal);
+                            getLog().info("Executing plugin: " + plugin.getGroupId() + ":" + plugin.getArtifactId() + ":" + plugin.getVersion() + ":" + goal);
                             executeMojo(
                                     plugin,
                                     goal,
