@@ -10,7 +10,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.codehaus.plexus.util.xml.Xpp3DomUtils;
 import org.twdata.maven.mojoexecutor.MavenCompatibilityHelper;
 import org.twdata.maven.mojoexecutor.MojoExecutor;
 
@@ -90,6 +89,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         metaPlugin.parameters = parameters;
         metaPlugin.pluginConfiguration = pluginsToXml(mojoExecution.getConfiguration().getChild("plugins"));
 
+        generateFile("DescribeMojo.java.mustache", metaPlugin.packageName, "DescribeMojo.java", metaPlugin);
         generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, "AbstractMetaPluginMojo.java", metaPlugin);
         for (String phase : phasesInUse(plugins)) {
             metaPlugin.className = LifecyclePhases.toClassName(LifecyclePhases.fromString(phase))+ "Mojo";
@@ -149,11 +149,22 @@ public class MetaMetaPluginMojo extends AbstractMojo {
     }
 
     private void assertMavenPluginPlugin() throws MojoFailureException {
-        boolean buildPluginFound = project.getBuildPlugins().stream()
-                .anyMatch(plugin -> "org.apache.maven.plugins".equals(plugin.getGroupId()) &&
-                        "maven-plugin-plugin".equals(plugin.getArtifactId()));
+        boolean wellFormed;
+        var mavenPluginPlugin = project.getBuildPlugins().stream()
+                .filter(plugin -> "org.apache.maven.plugins".equals(plugin.getGroupId()) && "maven-plugin-plugin".equals(plugin.getArtifactId()))
+                .findFirst();
 
-        if (!buildPluginFound) {
+        if (mavenPluginPlugin.isPresent()) {
+            var plugin = mavenPluginPlugin.get();
+            wellFormed = plugin.getExecutions().stream()
+                    .anyMatch(execution ->
+                            execution.getGoals().contains("helpmojo") &&
+                                    execution.getGoals().contains("descriptor"));
+        } else {
+            wellFormed = false;
+        }
+
+        if (!wellFormed) {
             getLog().error("Missing required Maven build plugin. Add this to your POM:");
             getLog().error("<build>");
             getLog().error("    <plugins>");

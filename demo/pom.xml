@@ -7,6 +7,7 @@
     <groupId>meta-maven-plugin</groupId>
     <artifactId>demo</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
 
     <name>Meta-Maven-Plugin Demo-Plugin Demo</name>
 
@@ -14,6 +15,8 @@
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <demo.plugin.greeting>Bonjour</demo.plugin.greeting>
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <build>
