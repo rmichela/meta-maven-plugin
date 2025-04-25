@@ -13,6 +13,7 @@
 
     <modules>
         <module>meta-maven-plugin-maven-plugin</module>
+        <module>meta-maven-plugin-maven-plugin-archetype</module>
         <module>demo-meta-maven-plugin</module>
         <module>demo</module>
     </modules>
