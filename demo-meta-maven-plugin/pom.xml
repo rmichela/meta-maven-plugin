@@ -71,6 +71,7 @@
                     <parameters>
                         <parameter>
                             <name>buildPath</name>
+                            <alias>build.path</alias>
                             <defaultValue>@{project.basedir}</defaultValue>
                             <required>true</required>
                             <readonly>true</readonly>

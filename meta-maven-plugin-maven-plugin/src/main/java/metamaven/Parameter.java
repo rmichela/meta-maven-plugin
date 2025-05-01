@@ -1,5 +1,7 @@
 package metamaven;
 
+import javax.lang.model.SourceVersion;
+
 public class Parameter {
     private String name;
     private String alias;
@@ -12,16 +14,20 @@ public class Parameter {
         return name;
     }
 
+    public boolean isNameValid() {
+        return isValidJavaFieldName(name);
+    }
+
     public String getAlias() {
-        return alias;
+        return alias == null ? "" : alias;
     }
 
     public String getProperty() {
-        return property;
+        return property == null ? "" : property;
     }
 
     public String getDefaultValue() {
-        return defaultValue.replace("@{", "${");
+        return defaultValue == null ? "" : defaultValue.replace("@{", "${");
     }
 
     public boolean isRequired() {
@@ -30,5 +36,13 @@ public class Parameter {
 
     public boolean isReadonly() {
         return readonly;
+    }
+
+    private static boolean isValidJavaFieldName(String name) {
+        if (name == null || name.isEmpty()) {
+            return false;
+        }
+        // Check if the name is a valid identifier and not a reserved keyword
+        return SourceVersion.isIdentifier(name) && !SourceVersion.isKeyword(name);
     }
 }

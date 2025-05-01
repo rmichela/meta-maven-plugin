@@ -74,6 +74,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        assertParameters();
         assertMavenPluginPackaging();
         assertMavenPluginPlugin();
         assertDependency("org.apache.maven", "maven-core", "provided");
@@ -192,6 +193,19 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             getLog().error("The project must be packaged as a Maven plugin. Set the packaging to 'maven-plugin' in your POM.");
             getLog().error("<packaging>maven-plugin</packaging>");
             throw new MojoFailureException("The project must be packaged as a Maven plugin.");
+        }
+    }
+
+    private void assertParameters() throws MojoFailureException {
+        if (parameters != null) {
+            for (Parameter parameter : parameters) {
+                if (!parameter.isNameValid()) {
+                    getLog().error("Invalid plugin parameter name: '" + parameter.getName() + "'");
+                    getLog().error("Parameter names must be valid Java identifiers and not reserved keywords.");
+                    getLog().error("To set an alternative name, use the 'alias' property.");
+                    throw new MojoFailureException("Invalid parameter name: " + parameter.getName());
+                }
+            }
         }
     }
 

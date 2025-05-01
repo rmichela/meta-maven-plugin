@@ -95,12 +95,20 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
                         MojoDescriptor mojo = pluginDescriptor.getMojo(goal);
                         String goalPhase = execution.getPhase() == null ? mojo.getPhase() : execution.getPhase();
                         if (phase.equals(goalPhase)) {
-                            getLog().info("Executing plugin: " + plugin.getGroupId() + ":" + plugin.getArtifactId() + ":" + plugin.getVersion() + ":" + goal + "(" + execution.getId() + ")");
-                            executeMojo(
-                                    plugin,
-                                    goal + "#" + execution.getId(),
-                                    Xpp3DomUtils.mergeXpp3Dom(executionConfiguration, pluginConfiguration),
-                                    env);
+                            getLog().info(" Executing plugin: " + plugin.getGroupId() + ":" + plugin.getArtifactId() + ":" + plugin.getVersion() + ":" + goal + "(" + execution.getId() + ")");
+                            try {
+                                executeMojo(
+                                        plugin,
+                                        goal + "#" + execution.getId(),
+                                        Xpp3DomUtils.mergeXpp3Dom(executionConfiguration, pluginConfiguration),
+                                        env);
+                            } catch (MojoExecutionException e) {
+                                getLog().error("Error executing plugin: " + plugin.getGroupId() + ":" + plugin.getArtifactId() + ":" + plugin.getVersion() + ":" + goal + "(" + execution.getId() + ")");
+                                if (e.getCause() != null) {
+                                    getLog().error( e.getCause().getMessage());
+                                }
+                                throw e;
+                            }
                         }
                     }
                 }
