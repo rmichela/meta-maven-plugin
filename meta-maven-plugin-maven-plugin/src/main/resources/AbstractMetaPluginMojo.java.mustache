@@ -71,7 +71,7 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
 {{#parameters}}
     @org.apache.maven.plugins.annotations.Parameter(alias = "{{alias}}", defaultValue = "{{defaultValue}}", property = "{{property}}", readonly = {{readonly}}, required = {{required}})
     @SuppressWarnings({"unused"})
-    private String {{name}};
+    private Object {{name}};
 {{/parameters}}
 
     @Override
@@ -114,7 +114,7 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
         try {
             Properties parameters = new Properties();
 {{#parameters}}
-            parameters.put("{{name}}", {{name}});
+            parameters.put("{{name}}", {{name}}.toString());
 {{/parameters}}
 
             Model model = modelReader.read(new StringReader(MODEL), null);

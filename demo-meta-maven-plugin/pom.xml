@@ -71,7 +71,7 @@
                     <parameters>
                         <parameter>
                             <name>buildPath</name>
-                            <defaultValue>@{project.build.outputDirectory}</defaultValue>
+                            <defaultValue>@{project.basedir}</defaultValue>
                             <required>true</required>
                             <readonly>true</readonly>
                         </parameter>
