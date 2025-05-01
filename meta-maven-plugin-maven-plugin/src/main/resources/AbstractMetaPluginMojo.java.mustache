@@ -95,10 +95,10 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
                         MojoDescriptor mojo = pluginDescriptor.getMojo(goal);
                         String goalPhase = execution.getPhase() == null ? mojo.getPhase() : execution.getPhase();
                         if (phase.equals(goalPhase)) {
-                            getLog().info("Executing plugin: " + plugin.getGroupId() + ":" + plugin.getArtifactId() + ":" + plugin.getVersion() + ":" + goal);
+                            getLog().info("Executing plugin: " + plugin.getGroupId() + ":" + plugin.getArtifactId() + ":" + plugin.getVersion() + ":" + goal + "(" + execution.getId() + ")");
                             executeMojo(
                                     plugin,
-                                    goal,
+                                    goal + "#" + execution.getId(),
                                     Xpp3DomUtils.mergeXpp3Dom(executionConfiguration, pluginConfiguration),
                                     env);
                         }
