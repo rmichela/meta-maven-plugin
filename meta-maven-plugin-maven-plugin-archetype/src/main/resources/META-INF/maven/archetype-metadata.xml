@@ -20,5 +20,8 @@
         <requiredProperty key="version">
             <defaultValue>1.0-SNAPSHOT</defaultValue>
         </requiredProperty>
+        <requiredProperty key="goalPrefix">
+            <defaultValue>helloworld</defaultValue>
+        </requiredProperty>
     </requiredProperties>
 </archetype-descriptor>

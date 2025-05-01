@@ -109,6 +109,9 @@
               <goal>descriptor</goal>
             </goals>
           </execution>
+          <configuration>
+            <goalPrefix>${goalPrefix}</goalPrefix>
+          </configuration>
         </executions>
       </plugin>
     </plugins>

@@ -12,7 +12,7 @@
     <name>Meta-Maven-Plugin Demo-Plugin Demo</name>
 
     <properties>
-        <maven.compiler.release>21</maven.compiler.release>
+        <maven.compiler.release>11</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <demo.plugin.greeting>Bonjour</demo.plugin.greeting>
         <maven.install.skip>true</maven.install.skip>
