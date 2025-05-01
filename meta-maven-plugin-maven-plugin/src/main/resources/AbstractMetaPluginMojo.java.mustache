@@ -65,8 +65,11 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
     @SuppressWarnings({"unused"})
     private MavenProject project;
 
-    private static final String MODEL = """{{{pluginConfiguration}}}
-    """;
+    private static final String MODEL =
+{{#pluginConfiguration}}
+        "{{{.}}}\n" +
+{{/pluginConfiguration}}
+        "";
 
 {{#parameters}}
     @org.apache.maven.plugins.annotations.Parameter(alias = "{{alias}}", defaultValue = "{{defaultValue}}", property = "{{property}}", readonly = {{readonly}}, required = {{required}})

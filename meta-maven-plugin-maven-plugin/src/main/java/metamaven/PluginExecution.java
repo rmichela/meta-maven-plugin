@@ -3,10 +3,8 @@ package metamaven;
 import org.codehaus.plexus.configuration.PlexusConfiguration;
 import org.twdata.maven.mojoexecutor.PlexusConfigurationUtils;
 
-import java.io.Serial;
 
 public class PluginExecution extends org.apache.maven.model.PluginExecution implements java.io.Serializable {
-    @Serial
     private static final long serialVersionUID = 1337L;
 
     // Short circuit SISU/Plexus dependency injection for the Plugin class's configuration field. Setter injection

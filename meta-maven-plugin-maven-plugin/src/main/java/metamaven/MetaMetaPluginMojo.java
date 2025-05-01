@@ -101,15 +101,15 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         }
     }
 
-    private String pluginsToXml(Xpp3Dom plugins) {
+    private List<String> pluginsToXml(Xpp3Dom plugins) {
         var project = new Xpp3Dom("project");
         var build = new Xpp3Dom("build");
         project.addChild(build);
         build.addChild(plugins);
         var xml = project.toString();
         xml = xml.replace("@{", "${");
-        xml = xml.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
-        return xml;
+        xml = xml.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n", "");
+        return List.of(xml.split("\\n"));
     }
 
     private void generateFile(String templateName, String packageName, String fileName, Object context) throws MojoExecutionException {

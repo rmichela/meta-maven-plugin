@@ -10,5 +10,5 @@ public class MetaPlugin {
     public String defaultPhase;
     public String threadSafe;
     public List<Parameter> parameters;
-    public String pluginConfiguration;
+    public List<String> pluginConfiguration;
 }
