@@ -19,6 +19,36 @@
         <maven.plugin.toolchain.version>3.15.1</maven.plugin.toolchain.version>
     </properties>
 
+    <ciManagement>
+        <system>GitHub Actions</system>
+        <url>https://github.com/rmichela/meta-maven-plugin/actions</url>
+    </ciManagement>
+
+    <scm>
+        <url>https://github.com/rmichela/meta-maven-plugin.git</url>
+        <connection>scm:git:https://github.com/rmichela/meta-maven-plugin.git</connection>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/rmichela/meta-maven-plugin/issues</url>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/license/mit</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Ryan Michela</name>
+            <organizationUrl>https://github.com/rmichela</organizationUrl>
+        </developer>
+    </developers>
+
     <dependencies>
         <!-- Maven Plugin API -->
         <dependency>
@@ -82,7 +112,49 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <goalPrefix>metamaven</goalPrefix>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.21.0</version>
             </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-report-plugin</artifactId>
+                <version>${maven.plugin.toolchain.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>3.8.0</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>team</report>
+                            <report>ci-management</report>
+                            <report>issue-management</report>
+                            <report>licenses</report>
+                            <report>scm</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>
