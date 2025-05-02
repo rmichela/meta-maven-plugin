@@ -19,6 +19,12 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Generates the code for implementing a meta-plugin mojo, using Maven native <code>Plugin</code> configuration in
+ * from POM. When executed as a plugin, the generated mojo executes multiple Maven plugins in order.
+ * <p><p>
+ * If the configured plugins bind to multiple Maven phases, the meta-plugin will generate a separate mojo for each phase.
+ */
 @Mojo(name = "meta-meta-plugin", defaultPhase = LifecyclePhase.GENERATE_SOURCES, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE)
 @SuppressWarnings({"unused"})
 public class MetaMetaPluginMojo extends AbstractMojo {
@@ -54,16 +60,32 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
     /**
      * A list of parameters for use by the generated meta plugin. Has the same properties as
-     * {@link Parameter}. All parameters are of type String and are interpolated into
-     * the meta plugin configuration. Meta plugin interpolated parameters are prefixed with #{} instead of ${}.
+     * {@link Parameter}.
+     * <ul>
+     *     <li><code>name</code> - The name of the property. Must be a valid Java field name.</li>
+     *     <li><code>alias</code> - An alias name of the parameter in the POM.</li>
+     *     <li><code>property</code> - Property to use to retrieve a value. Can come from -D execution, setting
+     *         properties or pom properties.</li>
+     *     <li><code>defaultValue</code> - The default value of the parameter. This value can be an interpolated
+     *         expression.</li>
+     *     <li><code>required</code> - Whether the parameter is required.</li>
+     *     <li><code>readonly</code> - Whether the parameter is readonly and should not be set by the user.
+     *         Used to capture values from the Maven project context.</li>
+     * </ul>
+     * <p><p>
+     * Parameter default values can be interpolated during Maven's execution.
+     * <ul>
+     *     <li>Expressions like <code>${}</code> are evaluated during meta-plugin code generation.</li>
+     *     <li>Expressions like <code>#{}</code> are evaluated during meta-plugin execution.</li>
+     * </ul>
      */
     @org.apache.maven.plugins.annotations.Parameter()
     @SuppressWarnings({"unused", "MismatchedQueryAndUpdateOfCollection"})
     private List<Parameter> parameters;
 
     /**
-     * A &lt;plugin&gt; element for each plugin to be executed. The plugins follow the same format as build plugins.
-     * <p>
+     * A <code>&lt;plugin&gt;</code> element for each plugin to be executed. The plugins follow the same format as build plugins.
+     * <p><p>
      * Plugin phases (default and explicit) determine which meta-plugin goals are generated.
      */
     @org.apache.maven.plugins.annotations.Parameter(required = true)

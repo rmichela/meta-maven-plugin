@@ -3,12 +3,12 @@ package metamaven;
 import javax.lang.model.SourceVersion;
 
 public class Parameter {
-    private String name;
-    private String alias;
-    private String property;
-    private String defaultValue;
-    private boolean required;
-    private boolean readonly;
+    public String name;
+    public String alias;
+    public String property;
+    public String defaultValue;
+    public boolean required;
+    public boolean readonly;
 
     public String getName() {
         return name;

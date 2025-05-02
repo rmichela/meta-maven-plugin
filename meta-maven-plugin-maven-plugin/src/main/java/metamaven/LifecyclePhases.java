@@ -13,6 +13,12 @@ public class LifecyclePhases {
     }
 
     public static String toClassName(LifecyclePhase phase) {
-        return phase.id().substring(0, 1).toUpperCase() + phase.id().substring(1).replace("-", "");
+        String[] parts = phase.id().split("-");
+        StringBuilder className = new StringBuilder();
+        for (String part : parts) {
+            className.append(part.substring(0, 1).toUpperCase())
+                     .append(part.substring(1).replace("-", ""));
+        }
+        return className.toString();
     }
 }
