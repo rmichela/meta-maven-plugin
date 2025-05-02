@@ -12,9 +12,3 @@ site:
 
 site-publish:
 	mvn site site:stage scm-publish:publish-scm -pl meta-maven-plugin-maven-plugin
-
-archetype:
-	rm -rf tmp
-	mkdir tmp
-	mvn install -pl meta-maven-plugin-maven-plugin-archetype
-	mvn archetype:generate -DoutputDirectory=tmp -DarchetypeGroupId=meta-maven-plugin  -DarchetypeArtifactId=meta-maven-plugin-maven-plugin-archetype  -DarchetypeVersion=1.0-SNAPSHOT -DinteractiveMode=false
