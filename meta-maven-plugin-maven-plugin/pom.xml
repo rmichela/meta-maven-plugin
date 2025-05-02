@@ -11,6 +11,7 @@
 
     <name>Meta-Maven-Plugin Maven Plugin</name>
     <description>A Maven plugin for generating preconfigured meta-plugins</description>
+    <url>https://rmichela.github.io/meta-maven-plugin/</url>
 
     <properties>
         <maven.compiler.release>11</maven.compiler.release>
