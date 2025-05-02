@@ -23,35 +23,5 @@
                 <version>${archetype.packaging.version}</version>
             </extension>
         </extensions>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-invoker-plugin</artifactId>
-                <version>3.9.0</version>
-                <executions>
-                    <execution>
-                        <id>integration-test</id>
-                        <goals>
-                            <goal>install</goal> <!-- install your plugin locally for testing -->
-                            <goal>run</goal>
-                        </goals>
-                        <phase>integration-test</phase>
-                        <configuration>
-                            <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
-                            <projectsDirectory>src/it</projectsDirectory>
-                            <!--                            <settingsFile>src/it/settings.xml</settingsFile>-->
-                            <goals>
-                                <goal>verify</goal> <!-- default goal to run in test projects -->
-                            </goals>
-                            <postBuildHookScript>verify.groovy</postBuildHookScript> <!-- optional -->
-                            <debug>false</debug>
-                            <streamLogs>true</streamLogs>
-                            <failIfNoProjects>true</failIfNoProjects>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
     </build>
 </project>

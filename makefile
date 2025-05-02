@@ -3,8 +3,8 @@
 clean:
 	mvn clean
 
-package:
-	mvn package
+build:
+	mvn verify
 
 site:
 	mvn site -pl meta-maven-plugin-maven-plugin
