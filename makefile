@@ -12,3 +12,4 @@ site:
 
 site-publish:
 	mvn site site:stage scm-publish:publish-scm -pl meta-maven-plugin-maven-plugin
+	open https://rmichela.github.io/meta-maven-plugin/
