@@ -11,5 +11,7 @@ site:
 	open meta-maven-plugin-maven-plugin/target/site/index.html
 
 archetype:
+	rm -rf tmp
+	mkdir tmp
 	mvn install -pl meta-maven-plugin-maven-plugin-archetype
-	mvn archetype:generate -DoutputDirectory=tmp -DarchetypeGroupId=meta-maven-plugin  -DarchetypeArtifactId=meta-maven-plugin-maven-plugin-archetype  -DarchetypeVersion=1.0-SNAPSHOT
+	mvn archetype:generate -DoutputDirectory=tmp -DarchetypeGroupId=meta-maven-plugin  -DarchetypeArtifactId=meta-maven-plugin-maven-plugin-archetype  -DarchetypeVersion=1.0-SNAPSHOT -DinteractiveMode=false

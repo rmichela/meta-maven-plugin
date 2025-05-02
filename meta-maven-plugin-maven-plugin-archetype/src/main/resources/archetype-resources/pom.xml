@@ -11,7 +11,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.api.version>3.9.9</maven.api.version>
     <maven.plugin.toolchain.version>3.15.1</maven.plugin.toolchain.version>
-    <meta.maven.plugin.version>1.0-SNAPSHOT</meta.maven.plugin.version>
+    <meta.maven.plugin.version>1.0.1-SNAPSHOT</meta.maven.plugin.version>
     <message>Hello World!</message>
   </properties>
 
@@ -109,11 +109,34 @@
               <goal>descriptor</goal>
             </goals>
           </execution>
-          <configuration>
-            <goalPrefix>${goalPrefix}</goalPrefix>
-          </configuration>
         </executions>
+        <configuration>
+          <goalPrefix>${goalPrefix}</goalPrefix>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.21.0</version>
       </plugin>
     </plugins>
   </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-report-plugin</artifactId>
+        <version>${maven.plugin.toolchain.version}</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
 </project>

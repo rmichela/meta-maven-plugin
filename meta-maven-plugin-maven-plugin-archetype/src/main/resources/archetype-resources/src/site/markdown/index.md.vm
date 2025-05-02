@@ -1,0 +1,11 @@
+# ${artifactId}
+
+Add the following to your plugins section:
+
+```
+	<plugin>
+		<groupId>${project.groupId}</groupId>
+		<artifactId>${project.artifactId}</artifactId>
+		<version>${project.version}</version>
+	</plugin>
+```

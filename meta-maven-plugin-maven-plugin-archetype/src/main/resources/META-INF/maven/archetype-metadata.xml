@@ -8,6 +8,19 @@
                 <include>pom.xml</include>
             </includes>
         </fileSet>
+        <fileSet>
+            <directory>src/site</directory>
+            <includes>
+                <include>site.xml</include>
+            </includes>
+        </fileSet>
+        <fileSet filtered="true">
+            <directory>src/site/markdown</directory>
+            <includes>
+                <include>*.md</include>
+                <include>index.md.vm</include>
+            </includes>
+        </fileSet>
     </fileSets>
 
     <requiredProperties>
