@@ -22,8 +22,5 @@ jobs:
       - run: git config --global user.email "test@example.com"
       - run: git config --global user.name "Test user"
 
-      - name: Build with Maven (install) on JDK ${{ matrix.java }}
-        run: mvn --batch-mode --update-snapshots install
-
       - name: Build with Maven (verify) on JDK ${{ matrix.java }}
         run: mvn --batch-mode --update-snapshots verify
