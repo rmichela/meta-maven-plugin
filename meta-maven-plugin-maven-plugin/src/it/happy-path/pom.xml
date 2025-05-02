@@ -5,14 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>meta-maven-plugin</groupId>
-    <artifactId>meta-maven-plugin-parent</artifactId>
+    <artifactId>test-case-happy-path</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Meta-Maven-Plugin Parent POM</name>
-
     <modules>
-        <module>meta-maven-plugin-maven-plugin</module>
-        <module>meta-maven-plugin-maven-plugin-archetype</module>
+        <module>plugin</module>
+        <module>project</module>
     </modules>
 </project>
