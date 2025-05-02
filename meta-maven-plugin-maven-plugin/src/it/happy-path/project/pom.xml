@@ -21,7 +21,7 @@
         <plugins>
             <plugin>
                 <groupId>meta-maven-plugin</groupId>
-                <artifactId>demo-meta-maven-plugin</artifactId>
+                <artifactId>test-case-happy-path-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <executions>
                     <execution>
