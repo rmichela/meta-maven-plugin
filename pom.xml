@@ -6,7 +6,7 @@
 
     <groupId>meta-maven-plugin</groupId>
     <artifactId>meta-maven-plugin-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Meta-Maven-Plugin Parent POM</name>
@@ -14,7 +14,7 @@
     <modules>
         <module>meta-maven-plugin-maven-plugin</module>
         <module>meta-maven-plugin-maven-plugin-archetype</module>
-        <module>demo-meta-maven-plugin</module>
-        <module>demo</module>
+        <module>demo/demo-meta-maven-plugin</module>
+        <module>demo/demo-project</module>
     </modules>
 </project>

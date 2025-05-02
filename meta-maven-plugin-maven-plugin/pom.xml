@@ -6,7 +6,7 @@
 
     <groupId>meta-maven-plugin</groupId>
     <artifactId>meta-maven-plugin-maven-plugin</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>Meta-Maven-Plugin Maven Plugin</name>
