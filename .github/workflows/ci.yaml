@@ -23,4 +23,4 @@ jobs:
       - run: git config --global user.name "Test user"
 
       - name: Build with Maven (verify) on JDK ${{ matrix.java }}
-        run: mvn --batch-mode --update-snapshots verify
+        run: mvn --batch-mode --update-snapshots install
