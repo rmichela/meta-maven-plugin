@@ -1,15 +1,118 @@
-# The Meta-Maven-Plugin Maven Plugin
+The Meta-Maven-Plugin Maven Plugin
+==================================
 
-Documentation to come.
+The `meta-maven-plugin-maven-plugin` is a Maven plugin for generating Maven meta-plugins.
 
-## Quick Start
+_A what for what?_ Maven meta-plugins are Maven plugins that execute other maven plugins with a pre-configured plugin
+configuration. Meta-plugins allow for sharing plugin configuration across multiple projects without the need for a
+shared parent POM. Additionally, meta-plugins allow for the execution of multiple plugins with a single plugin import,
+something not even a shared parent POM can do. If you find yourself copy/pasting the same hundred lines of plugin
+configuration XML between POMs, you would benefit from using a meta-plugin.
 
-Add the following to your plugins section:
+Authoring Maven meta-plugins has traditionally been a manual affair. You had to implement a Maven mojo class and
+explicitly invoke one or more maven plugins with code. The `meta-maven-plugin-maven-plugin` automates this process
+by generating that code for you instead using the native Maven plugin configuration XML already present in your POMs.
 
+Quick Start
+-----------
+
+Execute the following maven archetype command to generate a Maven meta-plugin project:
+
+```shell
+mvn archetype:generate \
+  -DarchetypeGroupId=${project.groupId} \
+  -DarchetypeArtifactId=${project.artifactId}-archetype \
+  -DarchetypeVersion=${project.version} \
+  -DgroupId=com.example \
+  -DartifactId=hello-world-meta-maven-plugin \
+  -Dversion=0.1.0-SNAPSHOT \
+  -Dpackage=com.example \
+  -DgoalPrefix=helloworld
 ```
-	<plugin>
-		<groupId>${project.groupId}</groupId>
-		<artifactId>${project.artifactId}</artifactId>
-		<version>${project.version}</version>
-	</plugin>
+
+* `-DgroupId`, `-DartifactId`, `-Dversion` - The GAV coordinates of your meta-plugin.
+* `-Dpackage` - Which java package to generate the mojo class in.
+* `-DgoalPrefix` - The Maven mojo goal prefix to use for your plugin, when calling it directly from the command line.
+
+The above command will generate a Maven project with no code, but with a `pom.xml` file that contains the
+`meta-maven-plugin-maven-plugin` configuration necessary to generate a basic Hello World meta-plugin during the Maven
+`generate-sources` phase, and a basic documentation site during the Maven `site` phase.
+
+Configuring the Meta-Maven-Plugin Maven Plugin
+----------------------------------------------
+
+The `meta-maven-plugin-maven-plugin` is configured primarily using the `<paramaters>` and `<plugins>` configuration
+elements. Consider the following basic meta-plugin example which prints out "Hello World" during the Maven `compile` 
+phase.
+
+```xml
+<plugin>
+    <groupId>${project.groupId}</groupId>
+    <artifactId>${project.artifactId}</artifactId>
+    <version>${project.version}</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>meta-meta-plugin</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <parameters>
+            <parameter>
+                <name>greeting</name>
+                <defaultValue>Hello World</defaultValue>
+            </parameter>
+        </parameters>
+        <plugins>
+            <plugin>
+                <groupId>com.github.ekryd.echo-maven-plugin</groupId>
+                <artifactId>echo-maven-plugin</artifactId>
+                <version>2.0.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>echo</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <message>@{greeting}</message>
+                </configuration>
+            </plugin>
+        </plugins>
+    </configuration>
+</plugin>
+```
+
+* The `<parameter>` configuration is used to identify a Maven plugin parameter that can be configured by the user of the
+meta-plugin.
+* Within the `<plugin>` configuration, we reference the `@{greeting}` parameter from within the meta-plugin's embedded
+  plugin configuration. Note the use of `@{}` to reference the parameter to trigger parameter interpolation during
+  meta-plugin execution in its host POM instead of during meta-plugin generation.
+
+Consuming the Generated Meta-Plugin
+-----------------------------------
+
+Once generated, the meta-plugin can be used like any other Maven plugin. The following POM example consumes the above
+meta-plugin and configures the `greeting` parameter to print out "Hello Developer!". The `meta-maven-plugin-maven-plugin`
+generates a plugin goal for each build phase used by the embedded configuration.
+
+```xml
+<plugin>
+    <groupId>my-group-id</groupId>
+    <artifactId>hello-world</artifactId>
+    <version>${project.version}</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>compile</goal>
+            </goals>
+        </execution>
+    </executions>
+    <configuration>
+        <greeting>Hello Developer</greeting>
+    </configuration>
+</plugin>
 ```

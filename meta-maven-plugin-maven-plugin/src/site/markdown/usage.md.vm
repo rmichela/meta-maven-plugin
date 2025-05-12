@@ -1,0 +1,116 @@
+Advanced Usage
+==============
+
+Executing Plugins in Different Maven Phases
+-------------------------------------------
+
+Meta-plugins can execute embedded plugins in any Maven phase by specifying the `<phase>` element in the embedded 
+plugin's execution. If no phase is explicitly identified, the embedded plugin's default phase is used. 
+
+For example, to run a plugin during the `compile` phase:
+
+```xml
+<plugin>
+    <groupId>com.github.ekryd.echo-maven-plugin</groupId>
+    <artifactId>echo-maven-plugin</artifactId>
+    <version>2.0.0</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>echo</goal>
+            </goals>
+            <phase>compile</phase>
+        </execution>
+    </executions>
+    <configuration>
+        <message>@{greeting}</message>
+    </configuration>
+</plugin>
+```
+
+The meta-plugin will generate a goal for each phase used in the embedded configuration, allowing you to invoke the 
+meta-plugin in those phases.
+
+Defining and Using Variables
+----------------------------
+
+Variable interpolation in meta-plugins follows standard Maven conventions with one additional change:
+
+* Variables prefixed with `${}` are replaced with the value of the variable at the time of mete-plugin compilation.
+* Variables prefixed with `@{}` are replaced with the value of the variable at the time of meta-plugin execution.
+
+Additionally, execution parameters must be defined `<parameters>` section and referenced in embedded plugin 
+configurations using the `@{parameterName}` syntax. This enables dynamic configuration at meta-plugin execution time.
+
+In the following example, the value of `<message>` is converted to `${gretting} Maven` during meta-plugin compilation,
+and `Hello Maven` during meta-plugin execution.
+
+```xml
+<properties>
+    <name>Maven</name>
+</properties>
+...
+<parameters>
+    <parameter>
+        <name>greeting</name>
+        <defaultValue>Hello</defaultValue>
+    </parameter>
+</parameters>
+...
+<configuration>
+    <message>@{greeting} ${name}</message>
+</configuration>
+```
+
+Capturing the Maven Execution Environment
+-----------------------------------------
+
+You can capture values from the Maven execution environment by referencing Maven properties in your meta-plugin's 
+parameter configurations. For example, to capture the project base directory:
+
+```xml
+<parameter>
+    <name>buildPath</name>
+    <alias>build.path</alias>
+    <defaultValue>@{project.basedir}</defaultValue>
+    <required>true</required>
+    <readonly>true</readonly>
+</parameter>
+```
+
+During compilation, this parameter is mapped to a mojo parameter named `buildPath` with `${project.basedir}` as a
+default value. Making the parameter required and readonly hides it from direct user configuration. This allows the 
+meta-plugin to capture and access environment-specific Maven values at runtime.
+
+Overriding Embedded Plugin Versions
+-----------------------------------
+
+Consumers of the generated meta-plugin can override the versions of embedded plugins by declaring them as dependencies 
+in the plugin configuration:
+
+```xml
+<plugin>
+    <groupId>${project.groupId}</groupId>
+    <artifactId>using-echo-plugin</artifactId>
+    <version>${project.version}</version>
+    <dependencies>
+        <dependency>
+            <groupId>com.github.ekryd.echo-maven-plugin</groupId>
+            <artifactId>echo-maven-plugin</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+    </dependencies>
+</plugin>
+```
+
+This ensures that the desired version of the embedded plugin is used during execution.
+
+Documenting the Meta-Plugin
+---------------------------
+
+As part of compiling the meta-plugin, the `meta-maven-plugin-maven-plugin` generates the following additional plugin
+goals:
+
+* `help` - The standard Maven help goal, which prints out the help information for the meta-plugin.
+* `describe` - A goal that prints out the meta-plugin's embedded plugin configuration, it' parameters, and their 
+  default values.

@@ -96,6 +96,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        assertPluginNameSuffix();
         assertParameters();
         assertMavenPluginPackaging();
         assertMavenPluginPlugin();
@@ -228,6 +229,12 @@ public class MetaMetaPluginMojo extends AbstractMojo {
                     throw new MojoFailureException("Invalid parameter name: " + parameter.getName());
                 }
             }
+        }
+    }
+
+    private void assertPluginNameSuffix() {
+        if (!project.getArtifactId().endsWith("-maven-plugin")) {
+            getLog().warn("The artifactId should end with '-maven-plugin' to follow Maven conventions.");
         }
     }
 
