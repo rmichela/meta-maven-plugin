@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 @Mojo(name = "meta-meta-plugin", defaultPhase = LifecyclePhase.GENERATE_SOURCES, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE)
 @SuppressWarnings({"unused"})
 public class MetaMetaPluginMojo extends AbstractMojo {
+    private static final String DEFAULT_EXECUTION_ID = "default";
+
     @Inject
     private MojoExecution mojoExecution;
 
@@ -125,18 +127,16 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
         var metaPlugin = new MetaPlugin();
         metaPlugin.packageName = buildPackageName(packageName);
-        metaPlugin.className = "InitializeMojo";
-        metaPlugin.goalName = "initialize";
-        metaPlugin.defaultPhase = "LifecyclePhase.INITIALIZE";
         metaPlugin.parameters = parameters;
         metaPlugin.pluginConfiguration = pluginsToXml(mojoExecution.getConfiguration().getChild("plugins"));
 
         generateFile("DescribeMojo.java.mustache", metaPlugin.packageName, "DescribeMojo.java", metaPlugin);
         generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, "AbstractMetaPluginMojo.java", metaPlugin);
+
         for (LifecyclePhase phase : phasesInUse(plugins)) {
             metaPlugin.javadoc = Documentation.getJavadoc(documentation, phase);
-            metaPlugin.className = LifecyclePhases.toClassName(phase)+ "Mojo";
-            metaPlugin.goalName = phase.id();
+            metaPlugin.className = executionIdToClassName(mojoExecution.getExecutionId()) + LifecyclePhases.toClassName(phase)+ "Mojo";
+            metaPlugin.goalName = (mojoExecution.getExecutionId().equals(DEFAULT_EXECUTION_ID) ? "" : mojoExecution.getExecutionId() + "-") + phase.id();
             metaPlugin.defaultPhase = "LifecyclePhase." + phase.name();
             metaPlugin.threadSafe = allPluginsThreadSafe(plugins, phase) ? "true" : "false";
             generateFile("PhaseMetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
@@ -332,5 +332,36 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             name = "_" + name;
         }
         return name;
+    }
+
+    /**
+     * Converts a Maven plugin execution id (valid XML name) into a valid Java class name,
+     * starting with an uppercase letter. Non-Java identifier characters are removed,
+     * and underscores or dashes are treated as word boundaries.
+     */
+    static String executionIdToClassName(String executionId) {
+        if (executionId == null || executionId.isEmpty() || executionId.equals(DEFAULT_EXECUTION_ID)) {
+            return "";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        boolean capitalizeNext = true;
+        for (char c : executionId.toCharArray()) {
+            if (c == '-' || c == '_' || !Character.isJavaIdentifierPart(c)) {
+                capitalizeNext = true;
+                continue;
+            }
+            if (capitalizeNext) {
+                sb.append(Character.toUpperCase(c));
+                capitalizeNext = false;
+            } else {
+                sb.append(c);
+            }
+        }
+        // Ensure the first character is a valid Java identifier start
+        if (sb.length() == 0 || !Character.isJavaIdentifierStart(sb.charAt(0))) {
+            sb.insert(0, '_');
+        }
+        return sb.toString();
     }
 }
