@@ -1,15 +1,19 @@
 package metamaven;
 
+import org.codehaus.plexus.configuration.PlexusConfiguration;
+
 import javax.lang.model.SourceVersion;
 
 public class Parameter {
     public String name;
+    public String description;
     public String alias;
     public String property;
     public String defaultValue;
     public boolean required;
     public boolean readonly;
 
+    // Getters for Mustache template specific pre-processing
     public String getName() {
         return name;
     }
@@ -28,6 +32,10 @@ public class Parameter {
 
     public String getDefaultValue() {
         return defaultValue == null ? "" : defaultValue.replace("@{", "${");
+    }
+
+    public String getJavadoc() {
+        return Documentation.asJavadoc(description);
     }
 
     public boolean isRequired() {

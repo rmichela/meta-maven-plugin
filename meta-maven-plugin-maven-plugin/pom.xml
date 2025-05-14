@@ -156,7 +156,6 @@
                         <configuration>
                             <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                             <projectsDirectory>src/it</projectsDirectory>
-<!--                            <settingsFile>src/it/settings.xml</settingsFile>-->
                             <goals>
                                 <goal>verify</goal> <!-- default goal to run in test projects -->
                             </goals>
@@ -164,6 +163,7 @@
                             <debug>false</debug>
                             <streamLogs>true</streamLogs>
                             <failIfNoProjects>true</failIfNoProjects>
+<!--                            <mavenExecutable>mvnDebug</mavenExecutable>-->
                         </configuration>
                     </execution>
                 </executions>

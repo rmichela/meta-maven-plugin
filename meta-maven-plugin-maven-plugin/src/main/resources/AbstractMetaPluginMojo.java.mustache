@@ -72,6 +72,7 @@ public abstract class AbstractMetaPluginMojo extends AbstractMojo {
         "";
 
 {{#parameters}}
+{{{javadoc}}}
     @org.apache.maven.plugins.annotations.Parameter(alias = "{{alias}}", defaultValue = "{{defaultValue}}", property = "{{property}}", readonly = {{readonly}}, required = {{required}})
     @SuppressWarnings({"unused"})
     private Object {{name}};

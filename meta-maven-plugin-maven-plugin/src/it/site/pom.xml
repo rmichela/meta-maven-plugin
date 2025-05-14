@@ -1,22 +1,12 @@
-A Complete Example
-==================
-
-The following complete example demonstrates how to use the `meta-maven-plugin-maven-plugin` to generate a meta-plugin 
-that wraps the `echo-maven-plugin` and exposes a configurable parameter.
-
-Building the Meta-Plugin
-------------------------
-
-```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>${project.groupId}</groupId>
-    <artifactId>echo-meta-maven-plugin</artifactId>
-    <version>${project.version}</version>
+    <groupId>meta-maven-plugin</groupId>
+    <artifactId>test-case-happy-path-maven-plugin</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>Meta-Maven-Plugin Demo-Plugin</name>
@@ -24,11 +14,13 @@ Building the Meta-Plugin
     <properties>
         <maven.compiler.release>11</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.deploy.skip>true</maven.deploy.skip>
         <maven.api.version>3.9.9</maven.api.version>
         <maven.plugin.toolchain.version>3.15.1</maven.plugin.toolchain.version>
+        <child1.name>Value</child1.name>
+        <child2.name>Other Value</child2.name>
     </properties>
 
-    <!-- Required dependencies for Maven Plugin development -->
     <dependencies>
         <!-- Maven Plugin API -->
         <dependency>
@@ -64,10 +56,9 @@ Building the Meta-Plugin
 
     <build>
         <plugins>
-            <!-- The meta-maven-plugin-maven-plugin itself -->
             <plugin>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>${project.artifactId}</artifactId>
+                <groupId>meta-maven-plugin</groupId>
+                <artifactId>meta-maven-plugin-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <executions>
                     <execution>
@@ -76,26 +67,30 @@ Building the Meta-Plugin
                         </goals>
                     </execution>
                 </executions>
-                
-                <!-- Declarative meta-plugin configuration for building the meta-plugin -->
                 <configuration>
-                    <!-- Documentation strings to include in javadoc and the generated Maven site -->
                     <documentation>
                         <overall>An example meta-maven plugin.</overall>
                         <phases>
                             <initialize>Prints a message during the Initialize phase.</initialize>
                         </phases>
                     </documentation>
-                    
-                    <!-- Plugin parameters for the meta-plugin -->
                     <parameters>
                         <parameter>
                             <name>greeting</name>
+                            <description>
+                                <![CDATA[
+                                    It can be anything, but it is recommended to use a simple string.
+                                    <br/><br/>
+                                    This is a <i>multi-line description</i> with inline HTML formatting.
+                                    <ul>
+                                        <li>Item 1</li>
+                                        <li>Item 2</li>
+                                    </ul>
+                                ]]>
+                            </description>
                             <defaultValue>Hello World</defaultValue>
                         </parameter>
                     </parameters>
-                    
-                    <!-- The embedded plugin configuration to execute when the meta-plugin is run -->
                     <plugins>
                         <plugin>
                             <groupId>com.github.ekryd.echo-maven-plugin</groupId>
@@ -109,15 +104,13 @@ Building the Meta-Plugin
                                 </execution>
                             </executions>
                             <configuration>
-                                <!-- A reference to a meta-plugin parameter defined above -->
                                 <message>@{greeting}</message>
                             </configuration>
                         </plugin>
                     </plugins>
                 </configuration>
             </plugin>
-            
-            <!-- The maven-plugin-plugin is part of the maven plugin development toolchain -->
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
@@ -131,55 +124,29 @@ Building the Meta-Plugin
                     </execution>
                 </executions>
             </plugin>
-        </plugins>
-    </build>
-</project>
-```
 
-This configuration will generate a meta-plugin that exposes a `greeting` parameter, and executes the embedded echo
-plugin during it's default phase. 
-
-Consuming the Meta-Plugin
--------------------------
-
-Consuming the meta-plugin in a project would look like this:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <groupId>${project.groupId}</groupId>
-    <artifactId>using-echo-plugin</artifactId>
-    <version>${project.version}</version>
-
-    <properties>
-        <maven.compiler.release>11</maven.compiler.release>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <greeting>Hello Maven</greeting>
-    </properties>
-
-    <build>
-        <plugins>
-            <!-- Execute the meta-plugin, with a parameter value sourced from the project properties -->
             <plugin>
-                <groupId>echo-plugin-group</groupId>
-                <artifactId>echo-meta-maven-plugin</artifactId>
-                <version>${project.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>initialize</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <greeting>${greeting}</greeting>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.21.0</version>
             </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-report-plugin</artifactId>
+                <version>${maven.plugin.toolchain.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>
-```

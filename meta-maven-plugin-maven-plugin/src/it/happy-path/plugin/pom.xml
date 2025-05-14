@@ -68,6 +68,13 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <documentation>
+                        <overall>Prints a message to the Maven output.</overall>
+                        <phases>
+                            <initialize>Prints a message during the Initialize phase.</initialize>
+                            <compile>Prints a message during the Compile phase.</compile>
+                        </phases>
+                    </documentation>
                     <parameters>
                         <parameter>
                             <name>buildPath</name>
@@ -78,6 +85,7 @@
                         </parameter>
                         <parameter>
                             <name>greeting</name>
+                            <description>Greeting message</description>
                             <defaultValue>Hello</defaultValue>
                         </parameter>
                     </parameters>

@@ -46,6 +46,21 @@ public class MetaMetaPluginMojo extends AbstractMojo {
     private MavenProject project;
 
     /**
+     * Documentation for the meta-plugin.
+     * <ul>
+     *     <li><code>overall</code> - Overall documentation for the overall meta-plugin.</li>
+     *     <li><code>goals</code> - Key/value paris of additional documentation for each goal.
+     *         Keys must be valid maven goal names in use by one of the embedded plugins.
+     *         Values are documentation strings.</li>
+     * </ul>
+     * <p>
+     * For rich text HTML, use <code>&lt;![CDATA[]]&gt;</code> escaping in the pom.
+     */
+    @org.apache.maven.plugins.annotations.Parameter
+    @SuppressWarnings({"unused"})
+    private Documentation documentation;
+
+    /**
      * The name of the package for the generated meta plugin.
      * <p>
      * By default, the package name will be calculated as <code>groupId + "." + artifactId</code> with additional
@@ -63,6 +78,8 @@ public class MetaMetaPluginMojo extends AbstractMojo {
      * {@link Parameter}.
      * <ul>
      *     <li><code>name</code> - The name of the property. Must be a valid Java field name.</li>
+     *     <li><code>description</code> - Documentation of the parameter's purpose. For rich text HTML, use
+     *         <code>&lt;![CDATA[]]&gt;</code> escaping in the pom.</li>
      *     <li><code>alias</code> - An alias name of the parameter in the POM.</li>
      *     <li><code>property</code> - Property to use to retrieve a value. Can come from -D execution, setting
      *         properties or pom properties.</li>
@@ -100,6 +117,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         assertParameters();
         assertMavenPluginPackaging();
         assertMavenPluginPlugin();
+        assertDocumentation();
         assertDependency("org.apache.maven", "maven-core", "provided");
         assertDependency("org.apache.maven", "maven-plugin-api", "provided");
         assertDependency("org.apache.maven.plugin-tools", "maven-plugin-annotations", "provided");
@@ -115,10 +133,11 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
         generateFile("DescribeMojo.java.mustache", metaPlugin.packageName, "DescribeMojo.java", metaPlugin);
         generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, "AbstractMetaPluginMojo.java", metaPlugin);
-        for (String phase : phasesInUse(plugins)) {
-            metaPlugin.className = LifecyclePhases.toClassName(LifecyclePhases.fromString(phase))+ "Mojo";
-            metaPlugin.goalName = LifecyclePhases.fromString(phase).id();
-            metaPlugin.defaultPhase = "LifecyclePhase." + LifecyclePhases.fromString(phase).name();
+        for (LifecyclePhase phase : phasesInUse(plugins)) {
+            metaPlugin.javadoc = Documentation.getJavadoc(documentation, phase);
+            metaPlugin.className = LifecyclePhases.toClassName(phase)+ "Mojo";
+            metaPlugin.goalName = phase.id();
+            metaPlugin.defaultPhase = "LifecyclePhase." + phase.name();
             metaPlugin.threadSafe = allPluginsThreadSafe(plugins, phase) ? "true" : "false";
             generateFile("PhaseMetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
         }
@@ -238,7 +257,16 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         }
     }
 
-    private boolean allPluginsThreadSafe(List<Plugin> plugins, String phase) throws MojoExecutionException {
+    private void assertDocumentation() throws MojoFailureException, MojoExecutionException {
+        if (documentation != null) {
+            if (!documentation.validatePhases(phasesInUse(plugins))) {
+                getLog().error("Invalid documentation phases. Ensure all keys are valid lifecycle phase ids in use by one of the embedded plugins.");
+                throw new MojoFailureException("All documentation phases must be valid lifecycle phase ids and used by one of the embedded plugins.");
+            }
+        }
+    }
+
+    private boolean allPluginsThreadSafe(List<Plugin> plugins, LifecyclePhase phase) throws MojoExecutionException {
         try {
             var env = MojoExecutor.executionEnvironment(project, mavenSession, pluginManager);
             for (Plugin plugin : plugins) {
@@ -246,7 +274,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
                 for (org.apache.maven.model.PluginExecution execution : plugin.getExecutions()) {
                     for (String goal : execution.getGoals()) {
                         var mojo = pluginDescriptor.getMojo(goal);
-                        if (mojo.getPhase().equals(phase) && !mojo.isThreadSafe()) {
+                        if (mojo.getPhase().equals(phase.id()) && !mojo.isThreadSafe()) {
                             return false;
                         }
                     }
@@ -258,20 +286,20 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         }
     }
 
-    private Set<String> phasesInUse(List<Plugin> plugins) throws MojoExecutionException {
+    private Set<LifecyclePhase> phasesInUse(List<Plugin> plugins) throws MojoExecutionException {
         try {
             var env = MojoExecutor.executionEnvironment(project, mavenSession, pluginManager);
-            Set<String> phases = new HashSet<>();
+            Set<LifecyclePhase> phases = new HashSet<>();
 
             for (Plugin plugin : plugins) {
                 var pluginDescriptor = MavenCompatibilityHelper.loadPluginDescriptor(plugin, env, mavenSession);
                 for (org.apache.maven.model.PluginExecution execution : plugin.getExecutions()) {
                     if (execution.getPhase() != null) {
-                        phases.add(execution.getPhase());
+                        phases.add(LifecyclePhases.fromString(execution.getPhase()));
                     }
                     for (String goal : execution.getGoals()) {
                         var mojo = pluginDescriptor.getMojo(goal);
-                        phases.add(mojo.getPhase());
+                        phases.add(LifecyclePhases.fromString(mojo.getPhase()));
                     }
                 }
             }

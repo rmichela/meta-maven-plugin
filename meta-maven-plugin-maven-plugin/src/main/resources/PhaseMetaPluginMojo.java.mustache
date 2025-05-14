@@ -4,9 +4,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
-/**
-* Executes the <code>{{goalName}}</code> lifecycle phase for each plugin in the meta-plugin's configuration.
-*/
+{{{javadoc}}}
 @Mojo(name = "{{goalName}}", defaultPhase = {{defaultPhase}}, threadSafe = {{threadSafe}}, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class {{className}} extends AbstractMetaPluginMojo {
     public {{className}} () {

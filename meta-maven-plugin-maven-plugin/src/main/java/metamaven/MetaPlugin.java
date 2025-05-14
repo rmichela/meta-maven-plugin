@@ -4,6 +4,7 @@ package metamaven;
 import java.util.List;
 
 public class MetaPlugin {
+    public String javadoc;
     public String packageName;
     public String className;
     public String goalName;
