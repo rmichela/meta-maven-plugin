@@ -82,6 +82,48 @@ During compilation, this parameter is mapped to a mojo parameter named `buildPat
 default value. Making the parameter required and readonly hides it from direct user configuration. This allows the 
 meta-plugin to capture and access environment-specific Maven values at runtime.
 
+Running Multiple Executions of the Meta Maven Plugin
+----------------------------------------------------
+
+Like any other Maven plugin, the meta-plugin can be executed multiple times in a single build. This allows you to
+generate multiple meta-plugin mojos with different configurations in the same build. Each execution can have its own 
+set of embedded plugins, and independent configuration. When doing so, Maven requires that each execution have a unique
+`<id>` element. During code generation, the `<id>` is used to create a unique mojo name prefix for each execution.
+
+For example, the following configuration generates two meta-plugin mojos named `hello-initialize` and 
+`goodbye-initialize`:
+```xml
+<plugin>
+    <groupId>${project.groupId}</groupId>
+    <artifactId>${project.artifactId}</artifactId>
+    <version>${project.version}</version>
+    <executions>
+        <execution>
+            <id>hello</id>
+            <goals>
+                <goal>meta-meta-plugin</goal>
+            </goals>
+            <configuration>
+                ...
+            </configuration>
+        </execution>
+        <execution>
+            <id>goodbye</id>
+            <goals>
+                <goal>meta-meta-plugin</goal>
+            </goals>
+            <configuration>
+                ...
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+```
+
+_Note!_ While Maven technically allows plugins to be defined multiple times independently within the same POM, the
+outcome is guaranteed to work. Maven warns you of this. The `meta-maven-plugin-maven-plugin` is designed only to work 
+with multiple `<executions>` of the same plugin instance, not multiple instances of the same plugin.
+
 Overriding Embedded Plugin Versions
 -----------------------------------
 
