@@ -123,7 +123,44 @@ parameter configurations. For example, to capture the project base directory:</p
 </code></pre>
 <p>During compilation, this parameter is mapped to a mojo parameter named <code>buildPath</code> with <code>/Users/rmichela/Code/meta-maven-plugin/meta-maven-plugin-maven-plugin</code> as a
 default value. Making the parameter required and readonly hides it from direct user configuration. This allows the
-meta-plugin to capture and access environment-specific Maven values at runtime.</p></section><section><a id="Overriding_Embedded_Plugin_Versions"></a>
+meta-plugin to capture and access environment-specific Maven values at runtime.</p></section><section><a id="Running_Multiple_Executions_of_the_Meta_Maven_Plugin"></a>
+<h2>Running Multiple Executions of the Meta Maven Plugin</h2>
+<p>Like any other Maven plugin, the meta-plugin can be executed multiple times in a single build. This allows you to
+generate multiple meta-plugin mojos with different configurations in the same build. Each execution can have its own
+set of embedded plugins, and independent configuration. When doing so, Maven requires that each execution have a unique
+<code>&lt;id&gt;</code> element. During code generation, the <code>&lt;id&gt;</code> is used to create a unique mojo name prefix for each execution.</p>
+<p>For example, the following configuration generates two meta-plugin mojos named <code>hello-initialize</code> and
+<code>goodbye-initialize</code>:</p>
+
+<pre class="prettyprint"><code class="language-xml">&lt;plugin&gt;
+    &lt;groupId&gt;meta-maven-plugin&lt;/groupId&gt;
+    &lt;artifactId&gt;meta-maven-plugin-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;0.1.0-SNAPSHOT&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;hello&lt;/id&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;meta-meta-plugin&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;configuration&gt;
+                ...
+            &lt;/configuration&gt;
+        &lt;/execution&gt;
+        &lt;execution&gt;
+            &lt;id&gt;goodbye&lt;/id&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;meta-meta-plugin&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;configuration&gt;
+                ...
+            &lt;/configuration&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;
+</code></pre>
+<p><em>Note!</em> While Maven technically allows plugins to be defined multiple times independently within the same POM, the
+outcome is guaranteed to work. Maven warns you of this. The <code>meta-maven-plugin-maven-plugin</code> is designed only to work
+with multiple <code>&lt;executions&gt;</code> of the same plugin instance, not multiple instances of the same plugin.</p></section><section><a id="Overriding_Embedded_Plugin_Versions"></a>
 <h2>Overriding Embedded Plugin Versions</h2>
 <p>Consumers of the generated meta-plugin can override the versions of embedded plugins by declaring them as dependencies
 in the plugin configuration:</p>
