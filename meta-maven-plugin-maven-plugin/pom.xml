@@ -4,53 +4,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.rmichela</groupId>
+    <parent>
+        <groupId>io.github.rmichela</groupId>
+        <artifactId>meta-maven-plugin-parent</artifactId>
+        <version>0.1.0</version>
+    </parent>
+
     <artifactId>meta-maven-plugin-maven-plugin</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>Meta-Maven-Plugin Maven Plugin</name>
     <description>A Maven plugin for generating preconfigured meta-plugins</description>
-    <url>https://rmichela.github.io/meta-maven-plugin/</url>
 
     <properties>
-        <maven.compiler.release>11</maven.compiler.release>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.api.version>3.9.9</maven.api.version>
         <maven.plugin.toolchain.version>3.15.1</maven.plugin.toolchain.version>
         <itExecutable>mvn</itExecutable>
     </properties>
-
-    <ciManagement>
-        <system>GitHub Actions</system>
-        <url>https://github.com/rmichela/meta-maven-plugin/actions</url>
-    </ciManagement>
-
-    <scm>
-        <url>https://github.com/rmichela/meta-maven-plugin.git</url>
-        <connection>scm:git:https://github.com/rmichela/meta-maven-plugin.git</connection>
-    </scm>
-
-    <issueManagement>
-        <system>GitHub</system>
-        <url>https://github.com/rmichela/meta-maven-plugin/issues</url>
-    </issueManagement>
-
-    <licenses>
-        <license>
-            <name>MIT License</name>
-            <url>https://raw.githubusercontent.com/rmichela/meta-maven-plugin/refs/heads/main/LICENSE</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <developers>
-        <developer>
-            <name>Ryan Michela</name>
-            <organizationUrl>https://github.com/rmichela</organizationUrl>
-        </developer>
-    </developers>
 
     <dependencies>
         <!-- Maven Plugin API -->
@@ -209,89 +179,4 @@
             </plugin>
         </plugins>
     </reporting>
-
-    <profiles>
-        <!-- https://central.sonatype.org/publish/publish-maven/#using-a-profile -->
-        <profile>
-            <id>release</id>
-            <build>
-                <plugins>
-                    <!-- https://central.sonatype.org/publish/publish-maven/#javadoc-and-sources-attachments -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-sources</id>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>attach-javadocs</id>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- https://central.sonatype.org/publish/publish-maven/#gpg-signed-components -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <gpgArguments>
-                                <arg>--batch</arg>
-                                <arg>--pinentry-mode</arg>
-                                <arg>loopback</arg>
-                            </gpgArguments>
-                            <keyname>${env.GPG_KEYNAME}</keyname>
-                            <passphraseEnvName>${env.GPG_PASSPHRASE}</passphraseEnvName>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>1.6.13</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-        <site>
-            <id>github</id>
-            <url>scm:git:git@github.com:rmichela/meta-maven-plugin.git</url>
-        </site>
-    </distributionManagement>
 </project>

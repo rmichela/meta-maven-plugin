@@ -1,9 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>io.github.rmichela</groupId>
+
+    <parent>
+        <groupId>io.github.rmichela</groupId>
+        <artifactId>meta-maven-plugin-parent</artifactId>
+        <version>0.1.0</version>
+    </parent>
+
     <artifactId>meta-maven-plugin-maven-plugin-archetype</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
     <packaging>maven-archetype</packaging>
 
     <name>Meta-Maven-Plugin Maven Plugin Archetype</name>
@@ -12,9 +17,6 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <archetype.packaging.version>3.1.1</archetype.packaging.version>
-        <plugin.groupId>${project.groupId}</plugin.groupId>
-        <plugin.artifactId>meta-maven-plugin-maven-plugin</plugin.artifactId>
-        <plugin.version>${project.version}</plugin.version>
     </properties>
 
 

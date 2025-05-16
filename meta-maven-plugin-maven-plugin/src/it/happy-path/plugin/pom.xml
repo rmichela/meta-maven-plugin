@@ -6,7 +6,7 @@
 
     <groupId>${plugin.groupId}</groupId>
     <artifactId>test-case-happy-path-maven-plugin</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0-TESTING</version>
     <packaging>maven-plugin</packaging>
 
     <name>Meta-Maven-Plugin Demo-Plugin</name>

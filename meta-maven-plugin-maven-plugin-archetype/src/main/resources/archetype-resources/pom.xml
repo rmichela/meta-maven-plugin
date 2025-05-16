@@ -51,9 +51,9 @@
     <plugins>
       <!-- Meta Maven Plugin -->
       <plugin>
-        <groupId>meta-maven-plugin</groupId>
+        <groupId>io.github.rmichela</groupId>
         <artifactId>meta-maven-plugin-maven-plugin</artifactId>
-        <version>0.1.0-SNAPSHOT</version>
+        <version>0.1.0</version>
         <executions>
           <execution>
             <goals>
