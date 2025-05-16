@@ -6,7 +6,7 @@
 
     <groupId>io.github.rmichela</groupId>
     <artifactId>meta-maven-plugin-parent</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Meta-Maven-Plugin Parent POM</name>
@@ -122,11 +122,4 @@
             </build>
         </profile>
     </profiles>
-
-    <distributionManagement>
-        <site>
-            <id>github</id>
-            <url>scm:git:git@github.com:rmichela/meta-maven-plugin.git</url>
-        </site>
-    </distributionManagement>
 </project>
