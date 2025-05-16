@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>meta-maven-plugin</groupId>
+    <groupId>io.github.rmichela</groupId>
     <artifactId>meta-maven-plugin-maven-plugin</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
@@ -19,6 +19,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.api.version>3.9.9</maven.api.version>
         <maven.plugin.toolchain.version>3.15.1</maven.plugin.toolchain.version>
+        <itExecutable>mvn</itExecutable>
     </properties>
 
     <ciManagement>
@@ -154,16 +155,21 @@
                         </goals>
                         <phase>integration-test</phase>
                         <configuration>
+                            <properties>
+                                <plugin.groupId>${project.groupId}</plugin.groupId>
+                                <plugin.artifactId>${project.artifactId}</plugin.artifactId>
+                                <plugin.version>${project.version}</plugin.version>
+                            </properties>
                             <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                             <projectsDirectory>src/it</projectsDirectory>
                             <goals>
-                                <goal>verify</goal> <!-- default goal to run in test projects -->
+                                <goal>verify</goal>
                             </goals>
                             <postBuildHookScript>verify.groovy</postBuildHookScript> <!-- optional -->
                             <debug>false</debug>
                             <streamLogs>true</streamLogs>
                             <failIfNoProjects>true</failIfNoProjects>
-<!--                            <mavenExecutable>mvnDebug</mavenExecutable>-->
+                            <mavenExecutable>${itExecutable}</mavenExecutable>
                         </configuration>
                     </execution>
                 </executions>

@@ -120,7 +120,6 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         assertMavenPluginPackaging();
         assertMavenPluginPlugin();
         assertDocumentation();
-        assertNotMultiplyDefined();
         assertDependency("org.apache.maven", "maven-core", "provided");
         assertDependency("org.apache.maven", "maven-plugin-api", "provided");
         assertDependency("org.apache.maven.plugin-tools", "maven-plugin-annotations", "provided");
@@ -284,14 +283,6 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             return true;
         } catch (PluginResolutionException | PluginDescriptorParsingException | InvalidPluginDescriptorException | PluginNotFoundException e) {
             throw new MojoExecutionException("Failed to determine thread safety of plugin", e);
-        }
-    }
-
-    private void assertNotMultiplyDefined() {
-        String thisKey = mojoExecution.getPlugin().getKey();
-        if (project.getBuild().getPlugins().stream().map(org.apache.maven.model.Plugin::getKey).anyMatch(thisKey::equals)) {
-            getLog().warn(thisKey + " is defined multiple times in the POM. Generated meta-plugin code may not be stable.");
-            getLog().warn("Use multiple plugin <executions> instead.");
         }
     }
 
