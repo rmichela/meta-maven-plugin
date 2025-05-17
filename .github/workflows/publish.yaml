@@ -7,10 +7,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ACTIONS_SSH_DEPLOY_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+        shell: bash
+
       - name: Publish Documentation Site
-        run: mvn site site:stage scm-publish:publish-scm -pl meta-maven-plugin-maven-plugin --batch-mode
+        run: mvn --batch-mode site site:stage scm-publish:publish-scm -pl meta-maven-plugin-maven-plugin
+
       - name: Publish to Apache Maven Central
-        run: mvn deploy -P release --batch-mode
+        run: mvn --batch-mode deploy -P release
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
