@@ -5,7 +5,6 @@ import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Model;
-import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.io.DefaultModelWriter;
 import org.apache.maven.model.io.ModelReader;
 import org.apache.maven.plugin.*;
@@ -131,6 +130,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         assertMavenPluginPackaging();
         assertMavenPluginPlugin();
         assertDocumentation();
+        assertNoDuplicatePlugins();
         assertDependency("org.apache.maven", "maven-core", "provided");
         assertDependency("org.apache.maven", "maven-plugin-api", "provided");
         assertDependency("org.apache.maven.plugin-tools", "maven-plugin-annotations", "provided");
@@ -144,12 +144,12 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         generateFile("DescribeMojo.java.mustache", metaPlugin.packageName, "DescribeMojo.java", metaPlugin);
         generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, "AbstractMetaPluginMojo.java", metaPlugin);
 
-        for (LifecyclePhase phase : phasesInUse(plugins)) {
-            metaPlugin.javadoc = Documentation.getJavadoc(documentation, phase, pluginsToJavaDocXml(mojoExecution.getConfiguration().getChild("plugins"), mojoExecution.getExecutionId(), phase));
+        for (LifecyclePhase phase : phasesInUse()) {
+            metaPlugin.javadoc = Documentation.getJavadoc(documentation, phase, pluginsToJavaDocXml(phase));
             metaPlugin.className = executionIdToClassName(mojoExecution.getExecutionId()) + LifecyclePhases.toClassName(phase)+ "Mojo";
             metaPlugin.goalName = (mojoExecution.getExecutionId().equals(DEFAULT_EXECUTION_ID) ? "" : mojoExecution.getExecutionId() + "-") + phase.id();
             metaPlugin.defaultPhase = "LifecyclePhase." + phase.name();
-            metaPlugin.threadSafe = allPluginsThreadSafe(plugins, phase) ? "true" : "false";
+            metaPlugin.threadSafe = allPluginsThreadSafe(phase) ? "true" : "false";
             generateFile("PhaseMetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
         }
     }
@@ -165,10 +165,9 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         return xml;
     }
 
-    private String pluginsToJavaDocXml(Xpp3Dom plugins, String forExecutionId, LifecyclePhase forPhase) throws MojoExecutionException {
+    private String pluginsToJavaDocXml(LifecyclePhase forPhase) throws MojoExecutionException {
         try {
-            var xml = pluginsToXml(plugins);
-            Model model = modelReader.read(new StringReader(xml), null);
+            Model model = modelReader.read(new StringReader(pluginsToXml(mojoExecution.getConfiguration().getChild("plugins"))), null);
 
             // Find plugin executions that are not this one and remove them
             MojoExecutor.ExecutionEnvironment env = executionEnvironment(project, mavenSession, pluginManager);
@@ -306,14 +305,35 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
     private void assertDocumentation() throws MojoFailureException, MojoExecutionException {
         if (documentation != null) {
-            if (!documentation.validatePhases(phasesInUse(plugins))) {
+            if (!documentation.validatePhases(phasesInUse())) {
                 getLog().error("Invalid documentation phases. Ensure all keys are valid lifecycle phase ids in use by one of the embedded plugins.");
                 throw new MojoFailureException("All documentation phases must be valid lifecycle phase ids and used by one of the embedded plugins.");
             }
         }
     }
 
-    private boolean allPluginsThreadSafe(List<Plugin> plugins, LifecyclePhase phase) throws MojoExecutionException {
+    private void assertNoDuplicatePlugins() throws MojoExecutionException {
+        try {
+            Model model = modelReader.read(new StringReader(pluginsToXml(mojoExecution.getConfiguration().getChild("plugins"))), null);
+            Map<String, Integer> found = new HashMap<>();
+            model.getBuild().getPlugins().stream().map(org.apache.maven.model.Plugin::getKey).forEach(k -> {
+                found.put(k, found.getOrDefault(k, 0) + 1);
+            });
+            if (found.values().stream().allMatch(v -> v > 1)) {
+                getLog().warn("Some problems were encountered while building the effective meta-plugin model");
+                found.forEach((k, v) -> {
+                    if (v > 1) {
+                        getLog().warn("Embedded plugins must be unique but found duplicate declaration of plugin " + k);
+                    }
+                });
+                getLog().warn("It is highly recommended to fix these problems because they threaten the stability of your build.");
+            };
+        } catch (Exception e) {
+            throw new MojoExecutionException(e.getMessage(), e);
+        }
+    }
+
+    private boolean allPluginsThreadSafe(LifecyclePhase phase) throws MojoExecutionException {
         try {
             var env = MojoExecutor.executionEnvironment(project, mavenSession, pluginManager);
             for (Plugin plugin : plugins) {
@@ -333,7 +353,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         }
     }
 
-    private Set<LifecyclePhase> phasesInUse(List<Plugin> plugins) throws MojoExecutionException {
+    private Set<LifecyclePhase> phasesInUse() throws MojoExecutionException {
         try {
             var env = MojoExecutor.executionEnvironment(project, mavenSession, pluginManager);
             Set<LifecyclePhase> phases = new HashSet<>();
