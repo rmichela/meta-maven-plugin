@@ -6,7 +6,7 @@
 
     <groupId>io.github.rmichela</groupId>
     <artifactId>meta-maven-plugin-parent</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.1.1</version>
     <packaging>pom</packaging>
 
     <name>Meta-Maven-Plugin Parent POM</name>
@@ -90,23 +90,17 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.2.7</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
-                                <phase>verify</phase>
                                 <goals>
                                     <goal>sign</goal>
                                 </goals>
                             </execution>
                         </executions>
                         <configuration>
-                            <gpgArguments>
-<!--                                <arg>&#45;&#45;batch</arg>-->
-                                <arg>--pinentry-mode</arg>
-                                <arg>loopback</arg>
-                            </gpgArguments>
-<!--                            <keyname>${env.GPG_KEYNAME}</keyname>-->
-<!--                            <passphraseEnvName>${env.GPG_PASSPHRASE}</passphraseEnvName>-->
+                            <signer>bc</signer>
                         </configuration>
                     </plugin>
                     <plugin>
@@ -116,6 +110,7 @@
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
                         </configuration>
                     </plugin>
                 </plugins>

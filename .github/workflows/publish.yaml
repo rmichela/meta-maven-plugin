@@ -1,0 +1,19 @@
+name: Publish package to the Maven Central Repository
+on:
+  release:
+    types: [published]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish Documentation Site
+        run: mvn site site:stage scm-publish:publish-scm -pl meta-maven-plugin-maven-plugin --batch-mode
+      - name: Publish to Apache Maven Central
+        run: mvn deploy -P release --batch-mode
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.RELEASES_GPG_PASSPHRASE }}
+          MAVEN_GPG_KEY: ${{ secrets.RELEASES_GPG_PRIVATE_KEY }}
+
