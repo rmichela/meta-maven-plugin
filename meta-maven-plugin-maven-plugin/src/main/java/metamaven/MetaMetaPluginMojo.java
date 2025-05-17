@@ -4,7 +4,13 @@ import com.github.mustachejava.DefaultMustacheFactory;
 import com.github.mustachejava.Mustache;
 import com.github.mustachejava.MustacheFactory;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.PluginExecution;
+import org.apache.maven.model.io.DefaultModelWriter;
+import org.apache.maven.model.io.ModelReader;
 import org.apache.maven.plugin.*;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -18,6 +24,8 @@ import javax.lang.model.SourceVersion;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.twdata.maven.mojoexecutor.MojoExecutor.executionEnvironment;
 
 /**
  * Generates the code for implementing a meta-plugin mojo, using Maven native <code>Plugin</code> configuration in
@@ -35,6 +43,9 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
     @Inject
     private BuildPluginManager pluginManager;
+
+    @Inject
+    private ModelReader modelReader;
 
     /**
      * The current Maven session.
@@ -128,13 +139,13 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         var metaPlugin = new MetaPlugin();
         metaPlugin.packageName = buildPackageName(packageName);
         metaPlugin.parameters = parameters;
-        metaPlugin.pluginConfiguration = pluginsToXml(mojoExecution.getConfiguration().getChild("plugins"));
+        metaPlugin.pluginConfiguration = pluginsToXml(mojoExecution.getConfiguration().getChild("plugins")).split("\\n");
 
         generateFile("DescribeMojo.java.mustache", metaPlugin.packageName, "DescribeMojo.java", metaPlugin);
         generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, "AbstractMetaPluginMojo.java", metaPlugin);
 
         for (LifecyclePhase phase : phasesInUse(plugins)) {
-            metaPlugin.javadoc = Documentation.getJavadoc(documentation, phase);
+            metaPlugin.javadoc = Documentation.getJavadoc(documentation, phase, pluginsToJavaDocXml(mojoExecution.getConfiguration().getChild("plugins"), mojoExecution.getExecutionId(), phase));
             metaPlugin.className = executionIdToClassName(mojoExecution.getExecutionId()) + LifecyclePhases.toClassName(phase)+ "Mojo";
             metaPlugin.goalName = (mojoExecution.getExecutionId().equals(DEFAULT_EXECUTION_ID) ? "" : mojoExecution.getExecutionId() + "-") + phase.id();
             metaPlugin.defaultPhase = "LifecyclePhase." + phase.name();
@@ -143,7 +154,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         }
     }
 
-    private List<String> pluginsToXml(Xpp3Dom plugins) {
+    private String pluginsToXml(Xpp3Dom plugins) {
         var project = new Xpp3Dom("project");
         var build = new Xpp3Dom("build");
         project.addChild(build);
@@ -151,7 +162,43 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         var xml = project.toString();
         xml = xml.replace("@{", "${");
         xml = xml.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n", "");
-        return List.of(xml.split("\\n"));
+        return xml;
+    }
+
+    private String pluginsToJavaDocXml(Xpp3Dom plugins, String forExecutionId, LifecyclePhase forPhase) throws MojoExecutionException {
+        try {
+            var xml = pluginsToXml(plugins);
+            Model model = modelReader.read(new StringReader(xml), null);
+
+            // Find plugin executions that are not this one and remove them
+            MojoExecutor.ExecutionEnvironment env = executionEnvironment(project, mavenSession, pluginManager);
+            List<org.apache.maven.model.Plugin> toRemovePlugins = new ArrayList<>();
+            for (var plugin : model.getBuild().getPlugins()) {
+                PluginDescriptor pluginDescriptor = MavenCompatibilityHelper.loadPluginDescriptor(plugin, env, mavenSession);
+                List<org.apache.maven.model.PluginExecution> toRemoveExecutions = new ArrayList<>();
+                for (var execution : plugin.getExecutions()) {
+                    for (String goal : execution.getGoals()) {
+                        MojoDescriptor mojo = pluginDescriptor.getMojo(goal);
+                        String goalPhase = execution.getPhase() == null ? mojo.getPhase() : execution.getPhase();
+                        if (!goalPhase.equals(forPhase.id())) {
+                            toRemoveExecutions.add(execution);
+                        }
+                    }
+                }
+                toRemoveExecutions.forEach(plugin::removeExecution);
+                if (plugin.getExecutions().isEmpty()) {
+                    toRemovePlugins.add(plugin);
+                }
+            }
+            toRemovePlugins.forEach(plugin -> model.getBuild().removePlugin(plugin));
+
+            // Write model to XML
+            StringWriter stringWriter = new StringWriter();
+            new DefaultModelWriter().write(stringWriter, null, model);
+            return stringWriter.toString().replace("<?xml version=\"1.0\"?>\n", "");
+        } catch (Exception e) {
+            throw new MojoExecutionException(e.getMessage(), e);
+        }
     }
 
     private void generateFile(String templateName, String packageName, String fileName, Object context) throws MojoExecutionException {
