@@ -15,3 +15,11 @@ by generating that code for you instead using the native Maven plugin configurat
 ## Documentation
 
 :books: For examples and documentation, see the [plugin Maven site](https://rmichela.github.io/meta-maven-plugin/index.html)
+
+## Releasing
+
+1. Update pom.xml versions with a non-snapshot version.
+2. Push changes to GitHub.
+3. Create a new release on GitHub with the version number and tag.
+4. When the release is created, GitHub Actions will automatically build and deploy the plugin to Maven Central.
+5. Update the version in pom.xml to the next snapshot version.
