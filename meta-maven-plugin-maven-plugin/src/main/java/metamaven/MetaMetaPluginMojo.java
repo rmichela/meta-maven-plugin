@@ -61,8 +61,8 @@ public class MetaMetaPluginMojo extends AbstractMojo {
      * Documentation for the meta-plugin.
      * <ul>
      *     <li><code>overall</code> - Overall documentation for the overall meta-plugin.</li>
-     *     <li><code>goals</code> - Key/value paris of additional documentation for each goal.
-     *         Keys must be valid maven goal names in use by one of the embedded plugins.
+     *     <li><code>phases</code> - Key/value paris of additional documentation for maven build phases.
+     *         Keys must be valid maven phase names in use by one of the embedded plugins.
      *         Values are documentation strings.</li>
      * </ul>
      * <p>

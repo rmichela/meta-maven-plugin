@@ -1,0 +1,19 @@
+# demo-grpc-maven-plugin
+
+Add the following to your plugins section:
+
+```
+	<plugin>
+		<groupId>${project.groupId}</groupId>
+		<artifactId>${project.artifactId}</artifactId>
+		<version>${project.version}</version>
+		<executions>
+            <execution>
+                <goals>
+                    <goal>generate-soruces</goal>
+                    <goal>verify</goal>
+                </goals>
+            </execution>
+        </executions>
+	</plugin>
+```

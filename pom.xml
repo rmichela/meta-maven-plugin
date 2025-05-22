@@ -15,6 +15,7 @@
     <modules>
         <module>meta-maven-plugin-maven-plugin</module>
         <module>meta-maven-plugin-maven-plugin-archetype</module>
+        <module>demo-grpc-maven-plugin</module>
     </modules>
 
     <properties>

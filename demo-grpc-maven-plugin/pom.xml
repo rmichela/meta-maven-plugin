@@ -1,0 +1,231 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>demo-grpc-maven-plugin</artifactId>
+    <packaging>maven-plugin</packaging>
+
+    <properties>
+        <maven.compiler.release>11</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.api.version>3.9.9</maven.api.version>
+        <maven.plugin.toolchain.version>3.15.1</maven.plugin.toolchain.version>
+        <meta.maven.plugin.version>1.0.1-SNAPSHOT</meta.maven.plugin.version>
+        <message>Hello World!</message>
+    </properties>
+
+    <dependencies>
+        <!-- Maven Plugin APIs -->
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>${maven.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+            <version>${maven.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>${maven.plugin.toolchain.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Mojo Executor library -->
+        <dependency>
+            <groupId>org.twdata.maven</groupId>
+            <artifactId>mojo-executor</artifactId>
+            <version>2.4.1</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Meta Maven Plugin -->
+            <plugin>
+                <groupId>io.github.rmichela</groupId>
+                <artifactId>meta-maven-plugin-maven-plugin</artifactId>
+                <version>${project.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>meta-meta-plugin</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <packageName>com.demo.grpc</packageName>
+                    <documentation>
+                        <phases>
+                            <generate-sources>Executes multiple passes of the protoc compiler. First, proto files are linted. Next code is generated. Finally, documentation is generated.</generate-sources>
+                            <verify>Checks for breaking changes in the proto files using protolock.</verify>
+                        </phases>
+                    </documentation>
+                    <parameters>
+                        <parameter>
+                            <name>srcdir</name>
+                            <defaultValue>@{project.basedir}/src</defaultValue>
+                            <required>true</required>
+                            <readonly>true</readonly>
+                        </parameter>
+                        <parameter>
+                            <name>grpcVersion</name>
+                            <required>true</required>
+                        </parameter>
+                        <parameter>
+                            <name>protobufVersion</name>
+                            <required>true</required>
+                        </parameter>
+                    </parameters>
+                    <plugins>
+                        <!-- gRPC Toolchain -->
+                        <!-- https://ascopes.github.io/protobuf-maven-plugin/plugin-info.html -->
+                        <plugin>
+                            <groupId>io.github.ascopes</groupId>
+                            <artifactId>protobuf-maven-plugin</artifactId>
+                            <version>2.6.3</version>
+                            <configuration>
+                                <protocVersion>@{protobufVersion}</protocVersion>
+                                <sourceDirectories>@{srcdir}/main/proto</sourceDirectories>
+                            </configuration>
+                            <executions>
+                                <execution>
+                                    <id>lint</id>
+                                    <goals>
+                                        <goal>generate</goal>
+                                    </goals>
+                                    <configuration>
+                                        <javaEnabled>false</javaEnabled>
+                                        <binaryMavenPlugins>
+                                            <binaryMavenPlugin>
+                                                <groupId>io.github.yoheimuta</groupId>
+                                                <artifactId>protoc-gen-protolint</artifactId>
+                                                <version>0.43.2</version>
+                                                <options>proto_root=@{srcdir}/main/proto,config_dir_path=@{srcdir}/main/proto</options>
+                                            </binaryMavenPlugin>
+                                        </binaryMavenPlugins>
+                                    </configuration>
+                                </execution>
+                                <execution>
+                                    <id>compile</id>
+                                    <goals>
+                                        <goal>generate</goal>
+                                    </goals>
+                                    <configuration>
+                                        <javaEnabled>true</javaEnabled>
+                                        <embedSourcesInClassOutputs>true</embedSourcesInClassOutputs>
+                                        <binaryMavenPlugins>
+                                            <binaryMavenPlugin>
+                                                <groupId>io.grpc</groupId>
+                                                <artifactId>protoc-gen-grpc-java</artifactId>
+                                                <version>@{grpcVersion}</version>
+                                                <options>@generated=omit</options>
+                                            </binaryMavenPlugin>
+                                        </binaryMavenPlugins>
+                                        <jvmMavenPlugins>
+                                            <jvmMavenPlugin>
+                                                <groupId>org.grpcmock</groupId>
+                                                <artifactId>protoc-gen-java-optional</artifactId>
+                                                <version>1.10.0</version>
+                                            </jvmMavenPlugin>
+                                        </jvmMavenPlugins>
+                                    </configuration>
+                                </execution>
+                                <execution>
+                                    <id>document</id>
+                                    <goals>
+                                        <goal>generate</goal>
+                                    </goals>
+                                    <configuration>
+                                        <javaEnabled>false</javaEnabled>
+                                        <outputDirectory>@{srcdir}/main/proto</outputDirectory>
+                                        <binaryMavenPlugins>
+                                            <binaryMavenPlugin>
+                                                <groupId>io.github.pseudomuto</groupId>
+                                                <artifactId>protoc-gen-doc</artifactId>
+                                                <version>1.5.1</version>
+                                                <options>markdown,README.md</options>
+                                            </binaryMavenPlugin>
+                                        </binaryMavenPlugins>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                        <plugin>
+                            <groupId>com.salesforce.servicelibs</groupId>
+                            <artifactId>proto-backwards-compatibility</artifactId>
+                            <version>1.0.7</version>
+                            <executions>
+                                <execution>
+                                    <goals>
+                                        <goal>backwards-compatibility-check</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Plugin Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>${maven.plugin.toolchain.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>helpmojo</goal>
+                            <goal>descriptor</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <goalPrefix>helloworld</goalPrefix>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.21.0</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-report-plugin</artifactId>
+                <version>${maven.plugin.toolchain.version}</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+    <parent>
+        <groupId>io.github.rmichela</groupId>
+        <artifactId>meta-maven-plugin-parent</artifactId>
+        <version>0.1.2-SNAPSHOT</version>
+    </parent>
+</project>
