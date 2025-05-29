@@ -155,6 +155,7 @@ public class MetaMetaPluginMojo extends AbstractMojo {
             metaPlugin.className = executionIdToClassName(mojoExecution.getExecutionId()) + LifecyclePhases.toClassName(phase)+ "Mojo";
             metaPlugin.goalName = (mojoExecution.getExecutionId().equals(DEFAULT_EXECUTION_ID) ? "" : mojoExecution.getExecutionId() + "-") + phase.id();
             metaPlugin.defaultPhase = "LifecyclePhase." + phase.name();
+            metaPlugin.defaultPhaseId = phase.id();
             metaPlugin.threadSafe = allPluginsThreadSafe(phase) ? "true" : "false";
             generateFile("PhaseMetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.className + ".java", metaPlugin);
         }

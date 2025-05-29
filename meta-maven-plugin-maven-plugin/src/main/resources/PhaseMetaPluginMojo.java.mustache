@@ -9,6 +9,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 @Mojo(name = "{{goalName}}", defaultPhase = {{defaultPhase}}, threadSafe = {{threadSafe}}, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class {{className}} extends {{abstractClassName}} {
     public {{className}} () {
-        super("{{goalName}}");
+        super("{{defaultPhaseId}}");
     }
 }

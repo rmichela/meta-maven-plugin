@@ -10,6 +10,7 @@ public class MetaPlugin {
     public String abstractClassName;
     public String goalName;
     public String defaultPhase;
+    public String defaultPhaseId;
     public String threadSafe;
     public List<Parameter> parameters;
     public String[] pluginConfiguration;
