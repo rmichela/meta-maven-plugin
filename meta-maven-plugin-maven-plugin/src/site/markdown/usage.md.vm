@@ -146,13 +146,3 @@ in the plugin configuration:
 ```
 
 This ensures that the desired version of the embedded plugin is used during execution.
-
-Documenting the Meta-Plugin
----------------------------
-
-As part of compiling the meta-plugin, the `meta-maven-plugin-maven-plugin` generates the following additional plugin
-goals:
-
-* `help` - The standard Maven help goal, which prints out the help information for the meta-plugin.
-* `describe` - A goal that prints out the meta-plugin's embedded plugin configuration, it' parameters, and their 
-  default values.

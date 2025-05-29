@@ -148,7 +148,6 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         metaPlugin.pluginConfiguration = pluginsToXml(mojoExecution.getConfiguration().getChild("plugins")).split("\\n");
         metaPlugin.abstractClassName = executionIdToClassName(mojoExecution.getExecutionId()) + "AbstractMetaPluginMojo";
 
-        generateFile("DescribeMojo.java.mustache", metaPlugin.packageName, "DescribeMojo.java", metaPlugin);
         generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.abstractClassName + ".java", metaPlugin);
 
         for (LifecyclePhase phase : phasesInUse()) {
