@@ -4,6 +4,12 @@
     <artifactId>demo-grpc-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
 
+    <parent>
+        <groupId>io.github.rmichela</groupId>
+        <artifactId>meta-maven-plugin-parent</artifactId>
+        <version>1.0.1-SNAPSHOT</version>
+    </parent>
+
     <properties>
         <maven.compiler.release>11</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -201,17 +207,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.11.2</version>
                 <configuration>
                     <doclint>none</doclint>
                 </configuration>
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.1.4</version>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.7.0</version>
                 <configuration>
-                    <skip>true</skip>
+                    <skipPublishing>true</skipPublishing>
                 </configuration>
             </plugin>
         </plugins>
@@ -233,9 +240,4 @@
             </plugin>
         </plugins>
     </reporting>
-    <parent>
-        <groupId>io.github.rmichela</groupId>
-        <artifactId>meta-maven-plugin-parent</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
-    </parent>
 </project>
