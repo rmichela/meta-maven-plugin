@@ -8,7 +8,7 @@ clean:      # Remove build artifacts
 	mvn clean
 
 test:       # Run tests
-	mvn install
+	mvn clean verify
 
 debug-it:      # Run integration tests with debug
 	mvn verify -pl meta-maven-plugin-maven-plugin -DitExecutable=mvnDebug

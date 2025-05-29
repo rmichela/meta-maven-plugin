@@ -123,6 +123,12 @@ public class MetaMetaPluginMojo extends AbstractMojo {
 
     private static final MustacheFactory MUSTACHE_FACTORY = new DefaultMustacheFactory();
 
+    /**
+     * This method is the main entry point for the meta-plugin code generator.
+     *
+     * @throws MojoExecutionException if an error occurs where the user is not at fault
+     * @throws MojoFailureException if an error occurs where the user is at fault
+     */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         assertPluginNameSuffix();
@@ -140,9 +146,10 @@ public class MetaMetaPluginMojo extends AbstractMojo {
         metaPlugin.packageName = buildPackageName(packageName);
         metaPlugin.parameters = parameters;
         metaPlugin.pluginConfiguration = pluginsToXml(mojoExecution.getConfiguration().getChild("plugins")).split("\\n");
+        metaPlugin.abstractClassName = executionIdToClassName(mojoExecution.getExecutionId()) + "AbstractMetaPluginMojo";
 
         generateFile("DescribeMojo.java.mustache", metaPlugin.packageName, "DescribeMojo.java", metaPlugin);
-        generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, "AbstractMetaPluginMojo.java", metaPlugin);
+        generateFile("AbstractMetaPluginMojo.java.mustache", metaPlugin.packageName, metaPlugin.abstractClassName + ".java", metaPlugin);
 
         for (LifecyclePhase phase : phasesInUse()) {
             metaPlugin.javadoc = Documentation.getJavadoc(documentation, phase, pluginsToJavaDocXml(phase));

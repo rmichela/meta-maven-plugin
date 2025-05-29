@@ -7,6 +7,7 @@ public class MetaPlugin {
     public String javadoc;
     public String packageName;
     public String className;
+    public String abstractClassName;
     public String goalName;
     public String defaultPhase;
     public String threadSafe;

@@ -7,7 +7,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 
 {{{javadoc}}}
 @Mojo(name = "{{goalName}}", defaultPhase = {{defaultPhase}}, threadSafe = {{threadSafe}}, requiresDependencyResolution = ResolutionScope.COMPILE)
-public class {{className}} extends AbstractMetaPluginMojo {
+public class {{className}} extends {{abstractClassName}} {
     public {{className}} () {
         super("{{goalName}}");
     }
