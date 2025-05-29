@@ -21,26 +21,17 @@
         <plugins>
             <plugin>
                 <groupId>io.github.rmichela</groupId>
-                <artifactId>test-case-happy-path-maven-plugin</artifactId>
+                <artifactId>test-case-multiple-invocations-maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <executions>
                     <execution>
                         <goals>
                             <goal>initialize</goal>
-                            <goal>compile</goal>
+                            <goal>hello-initialize</goal>
+                            <goal>goodbye-initialize</goal>
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <greeting>${demo.plugin.greeting}</greeting>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.github.ekryd.echo-maven-plugin</groupId>
-                        <artifactId>echo-maven-plugin</artifactId>
-                        <version>2.1.0</version>
-                    </dependency>
-                </dependencies>
             </plugin>
         </plugins>
     </build>
