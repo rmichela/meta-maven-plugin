@@ -113,6 +113,7 @@
                         <configuration>
                             <publishingServerId>central</publishingServerId>
                             <autoPublish>true</autoPublish>
+                            <excludeArtifacts>demo-grpc-maven-plugin</excludeArtifacts>
                         </configuration>
                     </plugin>
                 </plugins>
