@@ -1,6 +1,7 @@
 # The meta-maven-plugin-maven-plugin
 
-The `meta-maven-plugin-maven-plugin` is a Maven plugin for generating Maven meta-plugins.
+**Have you ever wished Maven had a BOM for plugins? Well now it does!** The `meta-maven-plugin-maven-plugin` is a Maven
+plugin for generating Maven meta-plugins.
 
 _A what for what?_ Maven meta-plugins are Maven plugins that execute other maven plugins with a pre-configured plugin
 configuration. Meta-plugins allow for sharing plugin configuration across multiple projects without the need for a
